@@ -498,7 +498,7 @@ def update_master(rookie_set):
 
 def rookie_deets(rookie_list):
     """Test getting biographical info."""
-    rookie = 'osunaro01'
+    rookie = 'badenbu01'
     url_start = "http://www.baseball-reference.com/players/"
     url = url_start + rookie[0] + "/" + rookie + ".shtml"
     print url
@@ -529,7 +529,7 @@ def rookie_deets(rookie_list):
     place_start = birth_place.find("in")
     birth_place = birth_place[place_start + 2:]
     birth_place = birth_place.split(",")
-    birth_place = [string.strip() for string in birth_place]
+    birth_place = [str(string.strip()) for string in birth_place]
     print birth_place
 
     return page, soup, carrots
