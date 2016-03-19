@@ -14,6 +14,7 @@ Notes:
 7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
 
+
 ToDo:
 comprehension for fix_csv
 put up on github
@@ -498,7 +499,7 @@ def update_master(rookie_set):
 
 def rookie_deets(rookie_list):
     """Test getting biographical info."""
-    rookie = 'badenbu01'
+    rookie = 'walkela01'
     url_start = "http://www.baseball-reference.com/players/"
     url = url_start + rookie[0] + "/" + rookie + ".shtml"
     print url
@@ -524,6 +525,11 @@ def rookie_deets(rookie_list):
     weight = carrots[4][lbs_start:lbs_start + 3]
     print weight
     dob = soup.find(id='necro-birth')['data-birth']
+    dob = dob.split('-')
+    year, month, day = dob[0], dob[1], dob[2]
+    print year
+    print day
+    print month
     print dob
     birth_place = soup.find(id='necro-birth').get_text()
     place_start = birth_place.find("in")
@@ -531,6 +537,14 @@ def rookie_deets(rookie_list):
     birth_place = birth_place.split(",")
     birth_place = [str(string.strip()) for string in birth_place]
     print birth_place
+    birthCity, birthState = birth_place[0], birth_place[1]
+    if len(birth_place) == 3:
+        birthCountry = birth_place[2]
+    else:
+        birthCountry = 'USA'
+    print birthCountry
+    print birthState
+    print birthCity
 
     return page, soup, carrots
 
