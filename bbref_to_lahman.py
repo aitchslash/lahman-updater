@@ -44,6 +44,7 @@ import csv
 from bs4 import BeautifulSoup
 import pymysql
 import os
+import urllib2
 import pprint  # nb, just for test prints
 
 bats_csv = 'bbref_2015_batting.csv'
@@ -493,6 +494,45 @@ def update_master(rookie_set):
     mydb.commit()
     cursor.close()
     return
+
+
+def rookie_deets(rookie_list):
+    """Test getting biographical info."""
+    rookie = 'osunaro01'
+    url_start = "http://www.baseball-reference.com/players/"
+    url = url_start + rookie[0] + "/" + rookie + ".shtml"
+    print url
+    page = urllib2.urlopen(url).read()
+    soup = BeautifulSoup(page, 'html.parser')
+    carrots = soup.find(id="info_box")
+    carrots = carrots.find_all('p')
+    carrots = str(carrots[2].get_text())[:-2]
+    carrots = carrots.replace("\n", ",")
+    carrots = carrots.split(',')
+    # ['Position: Pitcher', 'Bats: Right', ' Throws: Right', 'Height: 6\' 2"', ' Weight: 230 lb']
+    carrots = [carrot.strip() for carrot in carrots]
+    print carrots
+    bats = carrots[1][carrots[1].find(" ") + 1]
+    print bats
+    throws = carrots[2][carrots[2].find(" ") + 1]
+    print throws
+    feet = int(carrots[3][carrots[3].find(" ") + 1]) * 12
+    inches = int(carrots[3][-2])
+    height = feet + inches
+    print height
+    lbs_start = carrots[4].find(" ") + 1
+    weight = carrots[4][lbs_start:lbs_start + 3]
+    print weight
+    dob = soup.find(id='necro-birth')['data-birth']
+    print dob
+    birth_place = soup.find(id='necro-birth').get_text()
+    place_start = birth_place.find("in")
+    birth_place = birth_place[place_start + 2:]
+    birth_place = birth_place.split(",")
+    birth_place = [string.strip() for string in birth_place]
+    print birth_place
+
+    return page, soup, carrots
 
 
 def reset_master():
