@@ -551,7 +551,7 @@ def rookie_deets(rookie_list):
     update_string += "debut=" + debut_time + " "
     update_string += "WHERE playerID='" + rookie_id + "'"
     pprint.pprint(update_string)
-    return page, soup, carrots
+    return update_string
 
 
 def rookies_to_update():
