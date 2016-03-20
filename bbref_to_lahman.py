@@ -459,7 +459,7 @@ def find_rookies():
     return rookie_set
 
 
-def update_master(rookie_set):
+def populate_master(rookie_set):
     """Insert rookies into master."""
     ppl_dict = make_people_dict(people_csv)
     cols = get_columns('master')
@@ -496,31 +496,68 @@ def update_master(rookie_set):
     return
 
 
-def rookie_deets(rookie_list):
-    """Test getting biographical info."""
-    update_string = "UPDATE master SET "
-    rookie_id = 'walkela01'
+def get_carrots(rookie_id):
+    """Test function to find right carrot."""
     url_start = "http://www.baseball-reference.com/players/"
     url = url_start + rookie_id[0] + "/" + rookie_id + ".shtml"
     page = urllib2.urlopen(url).read()
     soup = BeautifulSoup(page, 'html.parser')
     carrots = soup.find(id="info_box")
     carrots = carrots.find_all('p')
-    carrots = str(carrots[2].get_text())[:-2]
-    carrots = carrots.replace("\n", ",")
-    carrots = carrots.split(',')
-    # ['Position: Pitcher', 'Bats: Right', ' Throws: Right', 'Height: 6\' 2"', ' Weight: 230 lb']
-    carrots = [carrot.strip() for carrot in carrots]
-    bats = carrots[1][carrots[1].find(" ") + 1]
+    carrot_strs = [c.encode('utf-8').strip() for c in carrots]
+    right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
+    print right_one
+    return carrots
+
+
+def rookie_deets(rookie_id):
+    """Make UPDATE string rookie update."""
+    update_string = "UPDATE master SET "
+    # rookie_id = 'walkela01'
+    url_start = "http://www.baseball-reference.com/players/"
+    url = url_start + rookie_id[0] + "/" + rookie_id + ".shtml"
+    page = urllib2.urlopen(url).read()
+    soup = BeautifulSoup(page, 'html.parser')
+    carrots = soup.find(id="info_box")
+    carrots = carrots.find_all('p')
+    carrot_strs = [c.encode('utf-8').strip() for c in carrots]
+    right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
+    # print rookie_id
+    # print carrots[2]
+    # carrots = str(carrots[2].get_text())[:-2]  # old line
+    if right_one:
+        carrots = carrots[right_one[-1]].get_text()[:-2]  # -2 strips off trailing \n
+        carrots = carrots.replace("\n", ",")
+        carrots = carrots.split(',')
+        # ['Position: Pitcher', 'Bats: Right', ' Throws: Right', 'Height: 6\' 2"', ' Weight: 230 lb']
+        carrots = [carrot.encode('utf-8').strip() for carrot in carrots]
+    else:
+        print "something went wrong. Here, have some carrots."
+        return carrots
+    # bi -> index of bats in carrots.  Mult positions throws this off
+    bi = [ndx for ndx, item in enumerate(carrots) if item.startswith('Bats')]
+    print carrots
+    bi = bi[0]
+    bats = carrots[bi][carrots[bi].find(" ") + 1]
     update_string += "bats='" + bats + "', "
-    throws = carrots[2][carrots[2].find(" ") + 1]
+    # deal w/ freakin' ambidextrous pitchers
+    if rookie_id != 'vendipa01':
+        throws = carrots[bi + 1][carrots[bi + 1].find(" ") + 1]
+    else:
+        throws = 'B'
+        carrots.pop(3)
+        dot = carrots[3].find(".")
+        carrots[3] = carrots[3][dot + 1:]
+
     update_string += "throws='" + throws + "', "
-    feet = int(carrots[3][carrots[3].find(" ") + 1]) * 12
-    inches = int(carrots[3][-2])
+    # print rookie_id,
+    # print carrots
+    feet = int(carrots[bi + 2][carrots[bi + 2].find(" ") + 1]) * 12
+    inches = int(carrots[bi + 2][-2])
     height = str(feet + inches)
     update_string += "height=" + height + ", "
-    lbs_start = carrots[4].find(" ") + 1
-    weight = str(carrots[4][lbs_start:lbs_start + 3])
+    lbs_start = carrots[bi + 3].find(" ") + 1
+    weight = str(carrots[bi + 3][lbs_start:lbs_start + 3])
     update_string += "weight=" + weight + ", "
     dob = soup.find(id='necro-birth')['data-birth']
     dob = dob.split('-')
@@ -550,7 +587,7 @@ def rookie_deets(rookie_list):
     debut_time = "'" + deb_year + "-" + deb_mon + "-" + deb_day + " 00:00:00'"
     update_string += "debut=" + debut_time + " "
     update_string += "WHERE playerID='" + rookie_id + "'"
-    pprint.pprint(update_string)
+    # pprint.pprint(update_string)
     return update_string
 
 
@@ -566,6 +603,21 @@ def rookies_to_update():
     cursor.close()
     rooks = [rook[0] for rook in rooks]
     return rooks
+
+
+def update_master():
+    """Update master table w/ data from bbref player pages."""
+    """Sleep timer makes it easier on bbref but slows things down."""
+    rookie_list = rookies_to_update()
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    for rookie in rookie_list:
+        statement = rookie_deets(rookie)
+        # print statement
+        cursor.execute(statement)
+        sleep(0.5)
+    mydb.commit()
+    cursor.close()
 
 
 def reset_master():
