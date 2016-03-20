@@ -574,6 +574,20 @@ def rookie_deets(rookie_list):
     return page, soup, carrots
 
 
+def rookies_to_update():
+    """Return list of rookies."""
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    statement = "SELECT playerID FROM master WHERE finalGame BETWEEN "
+    statement += "'2015-12-31 00:00:00' AND '2015-12-31 23:59:59'"
+    print statement
+    cursor.execute(statement)
+    rooks = cursor.fetchall()
+    cursor.close()
+    rooks = [rook[0] for rook in rooks]
+    return rooks
+
+
 def reset_master():
     """Delete entries with bad dates."""
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
