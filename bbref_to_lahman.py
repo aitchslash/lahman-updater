@@ -47,6 +47,7 @@ import pymysql
 import os
 import urllib2
 from time import strptime
+from time import sleep
 import pprint  # nb, just for test prints
 
 bats_csv = 'bbref_2015_batting.csv'
@@ -172,9 +173,11 @@ def get_columns(table):
     cursor.execute(statement)
     query_results = cursor.fetchall()
     cursor.close()
+    columns = [elem[0] for elem in query_results]
+    '''
     columns = []
     for elem in query_results:
-        columns.append(elem[0])
+        columns.append(elem[0])'''
     return columns
 
 
