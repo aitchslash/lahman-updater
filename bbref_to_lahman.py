@@ -174,10 +174,6 @@ def get_columns(table):
     query_results = cursor.fetchall()
     cursor.close()
     columns = [elem[0] for elem in query_results]
-    '''
-    columns = []
-    for elem in query_results:
-        columns.append(elem[0])'''
     return columns
 
 
@@ -190,10 +186,9 @@ def make_team_dict():
                    WHERE yearID = 2014'''
     cursor.execute(statement)
     team_tuples = cursor.fetchall()
+    print len(team_tuples)
     cursor.close()
-    team_dict = {}
-    for team in team_tuples:
-        team_dict[team[1]] = team[0]
+    team_dict = {team[1]: team[0] for team in team_tuples}
     return team_dict
 
 
