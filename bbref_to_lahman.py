@@ -504,7 +504,6 @@ def rookie_deets(rookie_list):
     rookie_id = 'walkela01'
     url_start = "http://www.baseball-reference.com/players/"
     url = url_start + rookie_id[0] + "/" + rookie_id + ".shtml"
-    print url
     page = urllib2.urlopen(url).read()
     soup = BeautifulSoup(page, 'html.parser')
     carrots = soup.find(id="info_box")
@@ -514,30 +513,21 @@ def rookie_deets(rookie_list):
     carrots = carrots.split(',')
     # ['Position: Pitcher', 'Bats: Right', ' Throws: Right', 'Height: 6\' 2"', ' Weight: 230 lb']
     carrots = [carrot.strip() for carrot in carrots]
-    print carrots
     bats = carrots[1][carrots[1].find(" ") + 1]
-    print bats
     update_string += "bats='" + bats + "', "
     throws = carrots[2][carrots[2].find(" ") + 1]
-    print throws
     update_string += "throws='" + throws + "', "
     feet = int(carrots[3][carrots[3].find(" ") + 1]) * 12
     inches = int(carrots[3][-2])
     height = str(feet + inches)
-    print height
     update_string += "height=" + height + ", "
     lbs_start = carrots[4].find(" ") + 1
     weight = str(carrots[4][lbs_start:lbs_start + 3])
-    print weight
     update_string += "weight=" + weight + ", "
     dob = soup.find(id='necro-birth')['data-birth']
     dob = dob.split('-')
     dob = [str(date.strip()) for date in dob]
     year, month, day = dob[0], dob[1], dob[2]
-    print year
-    print day
-    print month
-    print dob
     update_string += "birthYear=" + year + ", "
     update_string += "birthMonth=" + month + ", "
     update_string += "birthDay=" + day + ", "
@@ -546,36 +536,28 @@ def rookie_deets(rookie_list):
     birth_place = birth_place[place_start + 2:]
     birth_place = birth_place.split(",")
     birth_place = [str(string.strip()) for string in birth_place]
-    print birth_place
     birth_city, birth_state = birth_place[0], birth_place[1]
     if len(birth_place) == 3:
         birth_country = birth_place[2]
     else:
         birth_country = 'USA'
-    print birth_country
-    print birth_state
-    print birth_city
     update_string += "birthCountry='" + birth_country + "', "
     update_string += "birthState='" + birth_state + "', "
     update_string += "birthCity='" + birth_city + "', "
     debut_text = soup.select('a[href*="dest=debut"]')[0].get_text()
     deb_dates = debut_text.split(' ')
     deb_mon = str(strptime(deb_dates[0], '%B').tm_mon)
-    print deb_mon
     deb_day = str(deb_dates[1][:-1])
-    print deb_day
     deb_year = str(deb_dates[2])
-    print deb_year
     debut_time = "'" + deb_year + "-" + deb_mon + "-" + deb_day + " 00:00:00'"
     update_string += "debut=" + debut_time + " "
     update_string += "WHERE playerID='" + rookie_id + "'"
     pprint.pprint(update_string)
-
     return page, soup, carrots
 
 
 def rookies_to_update():
-    """Return list of rookies."""
+    """Return list of rookies already inserted in master."""
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
     statement = "SELECT playerID FROM master WHERE finalGame BETWEEN "
