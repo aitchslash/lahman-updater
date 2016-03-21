@@ -69,6 +69,21 @@ field_length = {'batting': 30,
                 '3B': 25}
 
 
+def add_pitching_columns():
+    """Run once.  Add extra stat columns to pitching."""
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    statement = """ALTER TABLE pitching
+                   ADD COLUMN ROE TINYINT(2) DEFAULT NULL,
+                   ADD COLUMN BAbip DOUBLE DEFAULT NULL AFTER BAopp,
+                   ADD COLUMN OPS DOUBLE DEFAULT NULL AFTER BAopp,
+                   ADD COLUMN SLG DOUBLE DEFAULT NULL AFTER BAopp,
+                   ADD COLUMN OBP DOUBLE DEFAULT NULL AFTER BAopp"""
+    cursor.execute(statement)
+    mydb.commit()
+    cursor.close()
+
+
 def extract_page(page):
     """Turn html page into a BeautifulSoup."""
     with open(page, "r") as html:
