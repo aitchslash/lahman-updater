@@ -494,6 +494,38 @@ def populate_master(rookie_set):
     return
 
 
+def pitching_deets(p_id):
+    """Make UPDATE string for pitching update."""
+    """Need S, SF, GIDP from bbref."""
+    # likely just want to make headers once. Remove from loop
+    update_str = "UPDATE pitching SET "
+    # sample url:
+    # http://www.baseball-reference.com/players/f/floydga01-pitch.shtml
+    url_start = "http://www.baseball-reference.com/players/"
+    url = url_start + p_id[0] + "/" + p_id + "-pitch.shtml"
+    page = urllib2.urlopen(url).read()
+    soup = BeautifulSoup(page, 'html.parser')
+    headers = soup.find(id="pitching_batting").find_all('th')
+    headers = [h.text.encode('utf-8') for h in headers]
+    # make formats match
+    headers[headers.index('BA')] = 'BAopp'
+    headers[headers.index('GDP')] = 'GIDP'
+    row_id = 'pitching_batting.%s' % year
+    tds = soup.find(id=row_id).find_all('td')
+    stats = [t.text.encode('utf-8') for t in tds]
+    year_dict = dict(zip(headers, stats))
+    # could run checks here
+    # both against repeat data and for length
+    updates = ['BAopp', 'GIDP', 'SF', 'SH']
+    # others = ['OBP', 'OPS', 'PAu', 'ROE', 'SLG', 'BAbip']
+    for stat in updates:
+        update_str += stat + "=" + year_dict[stat] + ", "
+    update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
+    print update_str
+
+    return soup, tds, headers
+
+
 def get_carrots(rookie_id):
     """Test function to find right carrot."""
     url_start = "http://www.baseball-reference.com/players/"
@@ -509,7 +541,7 @@ def get_carrots(rookie_id):
 
 
 def rookie_deets(rookie_id):
-    """Make UPDATE string rookie update."""
+    """Make UPDATE string for rookie update."""
     update_string = "UPDATE master SET "
     # rookie_id = 'walkela01'
     url_start = "http://www.baseball-reference.com/players/"
