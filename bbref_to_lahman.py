@@ -13,13 +13,16 @@ Notes:
 6) no recorded out leads to an infinite ERA - using 99.99
 7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
+8) selenium will need to be installed - I need a requirements.txt
 
 
 ToDo:
-comprehension for fix_csv
-put up on github
+use selenium to get pitcher csvs and s, sf and gidp
+decide what to do with csv's after use (keep/delete)
+update pitching table
 
-remove test f(x)'s
+may want to use selenium to automate getting base-csv's
+
 roll inserts into one f(x) - main
 create field_length dictionary with header
 
@@ -34,11 +37,6 @@ open lahman15 release
 check if extract_page and get_ids are ever used seperately
 :   roll into one if not
 
-check names correspond bbref_id:lahman_id --- done!
-: *** aah, but new_ids should be added to master ***
-:   <s>those that don't likely need a new_entry f(x)</s> use assigned bbrefID
-:   collect rookie id's and import name data from chadwick
-:       could use non_match array in make_bbrefid_stats_dict
 """
 
 import csv
