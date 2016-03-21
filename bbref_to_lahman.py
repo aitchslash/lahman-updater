@@ -531,9 +531,9 @@ def pitching_deets(p_id):
     year_dict = dict(zip(headers, stats))
     # could run checks here
     # both against repeat data and for length
-    updates = ['BAopp', 'GIDP', 'SF', 'SH']
-    # others = ['OBP', 'OPS', 'PAu', 'ROE', 'SLG', 'BAbip']
-    for stat in updates:
+    update = ['BAopp', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'ROE', 'SLG', 'BAbip']
+    # could use PA and PAu for further check
+    for stat in update:
         update_str += stat + "=" + year_dict[stat] + ", "
     update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
     print update_str
