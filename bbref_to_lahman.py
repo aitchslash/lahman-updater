@@ -13,12 +13,11 @@ Notes:
 6) no recorded out leads to an infinite ERA - using 99.99
 7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
-8) selenium will need to be installed - I need a requirements.txt
+
 
 
 ToDo:
-use selenium to get pitcher csvs and s, sf and gidp
-decide what to do with csv's after use (keep/delete)
+
 update pitching table
 
 may want to use selenium to automate getting base-csv's
@@ -27,6 +26,7 @@ roll inserts into one f(x) - main
 create field_length dictionary with header
 
 consider reworking insert_batter & insert_pitcher
+:   maybe use a decorator for the statement_start?
 :   first lines in ss the same
 :   if stint['Tm'] = 'TOT', now likely unneccessary
 open lahman15 release
@@ -587,6 +587,19 @@ def rookie_deets(rookie_id):
     update_string += "WHERE playerID='" + rookie_id + "'"
     # pprint.pprint(update_string)
     return update_string
+
+
+def pitchers_to_update():
+    """Return list of pitchers w/ 2015 stats."""
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    statement = "SELECT playerID FROM pitching where yearID = %s" % (year)
+    print statement
+    cursor.execute(statement)
+    pitchers = cursor.fetchall()
+    cursor.close()
+    pitchers = [p[0] for p in pitchers]
+    return pitchers
 
 
 def rookies_to_update():
