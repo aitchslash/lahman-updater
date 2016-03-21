@@ -19,6 +19,10 @@ Notes:
 ToDo:
 
 update pitching table
+    set up loop for updates
+    will need to take headers out of loop
+
+consider adding extended stats to batting too
 
 may want to use selenium to automate getting base-csv's
 
