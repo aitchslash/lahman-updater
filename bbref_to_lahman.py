@@ -557,9 +557,10 @@ to_fix = [('burneaj01', 'burnea.01'), ('delarjo01', 'rosajo01'),
           ('willije02', 'willije01')]
 
 
-def update_pitching():
+def update_pitching(pitcher_tuples, trials = 3):
     """"Update db with pitching data from bbref."""
-    pitchers = pitchers_to_update()
+    # pitchers = pitchers_to_update()
+    problems = []
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
     for p in pitchers:
@@ -570,8 +571,13 @@ def update_pitching():
             sleep(0.5)
         except:
             print "Something awry with " + p[0]
+            problems.append(p)
     mydb.commit()
     cursor.close()
+    if problems and trials >= 0:
+        # recursively try again
+        trials = trials - 1
+        update_pitching(problems, trials=trials)
 
 
 def get_carrots(rookie_id):
@@ -668,8 +674,8 @@ def rookie_deets(rookie_id):
     # pprint.pprint(update_string)
     return update_string
 
-
-def pitchers_to_update():
+# can likely get rid of this
+def pitchers_to_update_old():
     """Return list of pitchers w/ 2015 stats."""
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
@@ -682,7 +688,7 @@ def pitchers_to_update():
     return pitchers
 
 
-def pitchers_to_update2():
+def pitchers_to_update():
     """Return list of pitcher tuples (p_id, bbref_id) w/ 2015 stats."""
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
