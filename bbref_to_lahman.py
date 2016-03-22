@@ -557,13 +557,14 @@ to_fix = [('burneaj01', 'burnea.01'), ('delarjo01', 'rosajo01'),
           ('willije02', 'willije01')]
 
 
-def update_pitching(pitcher_tuples, trials = 3):
+def update_pitching(pitcher_tuples, trials=3):
     """"Update db with pitching data from bbref."""
     # pitchers = pitchers_to_update()
     problems = []
+    trials = trials - 1
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
-    for p in pitchers:
+    for p in pitcher_tuples:
         try:
             statement = pitching_deets(p)
             print statement
@@ -576,8 +577,12 @@ def update_pitching(pitcher_tuples, trials = 3):
     cursor.close()
     if problems and trials >= 0:
         # recursively try again
-        trials = trials - 1
         update_pitching(problems, trials=trials)
+    elif problems:
+        print "Out of trials. Problems with: "
+        pprint.pprint(problems)
+    else:
+        print "Pitcher update seemed to go well."
 
 
 def get_carrots(rookie_id):
@@ -673,6 +678,7 @@ def rookie_deets(rookie_id):
     update_string += "WHERE playerID='" + rookie_id + "'"
     # pprint.pprint(update_string)
     return update_string
+
 
 # can likely get rid of this
 def pitchers_to_update_old():
