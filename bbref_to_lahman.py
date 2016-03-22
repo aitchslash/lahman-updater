@@ -542,7 +542,27 @@ def pitching_deets(p_id):
     update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
     # print update_str
 
-    return update_str  #soup, tds, headers
+    return update_str  # soup, tds, headers
+
+
+to_fix = ['burneaj01', 'delarjo01', 'dickera01', 'harriwi02', 'lizra01',
+          'nathajo01', 'sabatcc01', 'smithch08', 'willije02']
+
+
+def update_pitching():
+    """"Update db with pitching data from bbref."""
+    pitchers = pitchers_to_update()
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    for p in pitchers:
+        try:
+            statement = pitching_deets(p)
+            cursor.execute(statement)
+            sleep(0.5)
+        except:
+            print "Something awry with " + p
+    mydb.commit()
+    cursor.close()
 
 
 def get_carrots(rookie_id):
