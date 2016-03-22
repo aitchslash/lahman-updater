@@ -540,9 +540,9 @@ def pitching_deets(p_id):
     for stat in update:
         update_str += stat + "=" + year_dict[stat] + ", "
     update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
-    print update_str
+    # print update_str
 
-    return soup, tds, headers
+    return update_str  #soup, tds, headers
 
 
 def get_carrots(rookie_id):
@@ -684,6 +684,7 @@ def update_master():
 
 def reset_master():
     """Delete entries with bad dates."""
+    """May want to change debut to lastGame"""
     mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
     cursor = mydb.cursor()
     statement = """DELETE FROM master where debut < '1800-01-01 00:00:00' and
