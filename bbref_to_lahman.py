@@ -17,16 +17,7 @@ Notes:
 
 
 ToDo:
-
-update pitching table
-    set up loop for updates
-    will need to take headers out of loop
-
-    collect bad url fetches and try again
-
-consider adding extended stats to batting too
-
-may want to use selenium to automate getting base-csv's
+update pitching table, take headers out of loop
 
 roll inserts into one f(x) - main
 create field_length dictionary with header
@@ -559,6 +550,9 @@ to_fix = [('burneaj01', 'burnea.01'), ('delarjo01', 'rosajo01'),
 
 def update_pitching(pitcher_tuples, trials=3):
     """"Update db with pitching data from bbref."""
+    """Pitcher tuples from pitchers_to_update()"""
+    """Timeouts and errors create problems.  Collect them and recursively
+    try again."""
     # pitchers = pitchers_to_update()
     problems = []
     trials = trials - 1
