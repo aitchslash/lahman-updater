@@ -22,6 +22,8 @@ update pitching table
     set up loop for updates
     will need to take headers out of loop
 
+    collect bad url fetches and try again
+
 consider adding extended stats to batting too
 
 may want to use selenium to automate getting base-csv's
@@ -513,15 +515,16 @@ def populate_master(rookie_set):
     return
 
 
-def pitching_deets(p_id):
+def pitching_deets(pitcher_tuple):
     """Make UPDATE string for pitching update."""
     """Need S, SF, GIDP from bbref."""
     # likely just want to make headers once. Remove from loop
+    p_id, bbref_id = pitcher_tuple[0], pitcher_tuple[1]
     update_str = "UPDATE pitching SET "
     # sample url:
     # http://www.baseball-reference.com/players/f/floydga01-pitch.shtml
     url_start = "http://www.baseball-reference.com/players/"
-    url = url_start + p_id[0] + "/" + p_id + "-pitch.shtml"
+    url = url_start + bbref_id[0] + "/" + bbref_id + "-pitch.shtml"
     page = urllib2.urlopen(url).read()
     soup = BeautifulSoup(page, 'html.parser')
     headers = soup.find(id="pitching_batting").find_all('th')
@@ -538,15 +541,20 @@ def pitching_deets(p_id):
     update = ['BAopp', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'ROE', 'SLG', 'BAbip']
     # could use PA and PAu for further check
     for stat in update:
+        if not year_dict[stat]:
+            year_dict[stat] = 'NULL'
         update_str += stat + "=" + year_dict[stat] + ", "
     update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
     # print update_str
 
-    return update_str  # soup, tds, headers
+    return update_str  # soup, tds, headers  # good stuff for debugging
 
-
-to_fix = ['burneaj01', 'delarjo01', 'dickera01', 'harriwi02', 'lizra01',
-          'nathajo01', 'sabatcc01', 'smithch08', 'willije02']
+# these gave me issues, seems to be fixed but leaving it in just in case
+to_fix = [('burneaj01', 'burnea.01'), ('delarjo01', 'rosajo01'),
+          ('dickera01', 'dicker.01'), ('harriwi02', 'harriwi10'),
+          ('lizra01', 'lizra01'), ('nathajo01', 'nathajo01'),
+          ('sabatcc01', 'sabatc.01'), ('smithch08', 'smithch09'),
+          ('willije02', 'willije01')]
 
 
 def update_pitching():
@@ -557,10 +565,11 @@ def update_pitching():
     for p in pitchers:
         try:
             statement = pitching_deets(p)
+            print statement
             cursor.execute(statement)
             sleep(0.5)
         except:
-            print "Something awry with " + p
+            print "Something awry with " + p[0]
     mydb.commit()
     cursor.close()
 
@@ -670,6 +679,23 @@ def pitchers_to_update():
     pitchers = cursor.fetchall()
     cursor.close()
     pitchers = [p[0] for p in pitchers]
+    return pitchers
+
+
+def pitchers_to_update2():
+    """Return list of pitcher tuples (p_id, bbref_id) w/ 2015 stats."""
+    mydb = pymysql.connect('localhost', 'root', '', 'lahman14')
+    cursor = mydb.cursor()
+    statement = '''SELECT pitching.playerID, master.bbrefID
+                   FROM  pitching
+                   LEFT JOIN master ON pitching.playerID = master.playerID
+                   WHERE pitching.yearID = %s''' % (year)
+    # statement = """SELECT playerID FROM pitching where yearID = %s""" % (year)
+    print statement
+    cursor.execute(statement)
+    pitchers = cursor.fetchall()
+    cursor.close()
+    pitchers = [(p[0], p[1]) for p in pitchers]
     return pitchers
 
 
