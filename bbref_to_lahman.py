@@ -561,7 +561,7 @@ def update_pitching(pitcher_tuples, trials=3):
     for p in pitcher_tuples:
         try:
             statement = pitching_deets(p)
-            print statement
+            # print statement
             cursor.execute(statement)
             sleep(0.5)
         except:
