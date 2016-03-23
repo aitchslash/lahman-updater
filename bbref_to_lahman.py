@@ -17,13 +17,25 @@ Notes:
 
 
 ToDo:
+use new p_batting_against csv - make/dict
+alter p table to include new stats - fip, maybe more from orig
+    may need a table reset f(x)
+
+once working remove old code
+
+examine batting stats on bbref to maybe get more
+
+consider getting WAR
+
+look into automating getting csv/source files via spynner
+
 update pitching table, take headers out of loop
 
 roll inserts into one f(x) - main
 create field_length dictionary with header
 
 consider reworking insert_batter & insert_pitcher
-:   maybe use a decorator for the statement_start?
+:   maybe use a decorator for the statement_start/end?
 :   first lines in ss the same
 :   if stint['Tm'] = 'TOT', now likely unneccessary
 open lahman15 release
