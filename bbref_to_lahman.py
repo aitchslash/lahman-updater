@@ -29,7 +29,7 @@ consider getting WAR
 
 look into automating getting csv/source files via spynner
 
-update pitching table, take headers out of loop
+update pitching table, take get_headers out of loop
 
 roll inserts into one f(x) - main
 create field_length dictionary with header
@@ -59,8 +59,10 @@ import pprint  # nb, just for test prints
 
 bats_csv = 'bbref_2015_batting.csv'
 arms_csv = 'bbref_2015_pitching.csv'
+arms_extra_csv = 'p_batting_against.csv'
 bats_html = 'bbref_html.shtml'
 arms_html = 'bbref_arms_html.shtml'
+arms_extra_html = 'p_batting_against.shtml'
 year = '2015'
 people_csv = 'people.csv'
 
@@ -150,8 +152,9 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
         header = reader.fieldnames
         print (header)  # nb, just to appease pep-8
         if table == 'P':
-            # fix Putouts/Pickoffs
+            # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
+            field_len = 35
 
         # read the lines from the csv
         for row in reader:
@@ -214,12 +217,46 @@ def make_team_dict():
     return team_dict
 
 
+def expand_p_test():
+    """Test."""
+    soup = extract_page(arms_extra_html)
+    soup_orig = extract_page(arms_html)
+    ids = get_ids(soup)
+    ids_orig = get_ids(soup_orig)
+    # compare
+    fix_csv(arms_extra_csv)
+    # pitching extra has len=30, same as default
+    sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
+    sd_orig = make_bbrefid_stats_dict(arms_csv, ids_orig, 'pitching')
+    assert sd.keys() == sd_orig.keys()
+    for p_id in sd.keys():
+        if len(sd[p_id].keys()) > 10:  # only one stint
+            sd[p_id].update(sd_orig[p_id])
+            try:
+                sd[p_id]['BAopp'] = sd[p_id].pop('BA')
+            except:
+                print "Problem w/ BA. ID: ",
+                print p_id
+        else:  # more than one stint
+            for stint in sd[p_id].keys():
+                sd[p_id][stint].update(sd_orig[p_id][stint])
+                try:
+                    sd[p_id][stint]['BAopp'] = sd[p_id][stint].pop('BA')
+                except:
+                    print "Huh? ",
+                    print p_id
+    sd = fix_mismatches(sd)
+
+    return soup, sd, sd_orig
+
+
 def setup():
     """Run one-time queries and audit data."""
     soup = extract_page(bats_html)
     ids = get_ids(soup)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     batting_dict = fix_mismatches(batting_dict)
+    # is this wrong?  should ids for pitcher be sourced from diff soup
     pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
     pitching_dict = fix_mismatches(pitching_dict)
     team_dict = make_team_dict()
@@ -285,6 +322,7 @@ def insert_batter(key, stats_dict, team_dict, fields_array):
         stat_keys = ['AB', 'R', 'H', '2B', '3B', 'HR', 'RBI', 'SB',
                      'CS', 'BB', 'SO', 'IBB', 'HBP', 'SH', 'SF', 'GDP']
         for sk in stat_keys:
+            # this could be reworked w/ stint.get(sk, default = 0)
             if stint[sk]:
                 ss += stint[sk] + ', '
             else:
@@ -383,6 +421,67 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
 
 
 def insert_pitcher(key, stats_dict, team_dict, fields_array):
+    """Create insertion string(s)."""
+    """Returns an array of sql commands to be executed."""
+    stats = stats_dict[key]
+    stints = []
+    if len(stats) == 35:  # only one stint
+        stats['stint'] = 1
+        stints.append(stats)
+    else:
+        for stint_key in stats.keys():
+            stats[stint_key]['stint'] = str(stint_key[-1])
+            stints.append(stats[stint_key])
+
+    # move IPouts and BAOpp to end of array
+    fields_array.append(fields_array.pop(fields_array.index('IPouts')))
+    fields_array.append(fields_array.pop(fields_array.index('BAOpp')))
+
+    insert_strings = []
+    empty_warning = set()  # nb, likely served its purpose
+    for stint in stints:
+        statement_start = "INSERT INTO pitching ("
+        for field in fields_array:
+            statement_start += field + ", "
+        statement_start = statement_start[:-2] + ") VALUES ("
+        ss = statement_start
+        # print key  # test print
+        ss += "'" + key + "', "
+        ss += year + ", "
+        ss += str(stint['stint']) + ", "
+        ss += "'" + team_dict[stint["Tm"]] + "', "
+        ss += "'" + stint['Lg'] + "', "
+        stat_keys = ['W', 'L', 'G', 'GS', 'CG', 'SHO', 'SV', 'H',
+                     'ER', 'HR', 'BB', 'SO', 'ERA', 'IBB', 'WP', 'HBP',
+                     'BK', 'BF', 'GF', "R"]
+        for sk in stat_keys:
+            if stint[sk]:
+                if stint[sk] != 'inf':  # ERA = infinity
+                    ss += stint[sk] + ', '
+                else:
+                    ss += '99.99, '  # arbitrarily set ERA to 99.99
+            else:
+                ss += '0, '
+                empty_warning.add(key)  # nb, this is likely done too.
+        # NULL for sh, sf, and gidp
+        ss += "NULL, NULL, NULL, "
+        # lines for IPouts
+        last_digit = str(float(stint['IP']))[-1]
+        ipouts = int(float(stint['IP'])) * 3 + int(last_digit)
+        ss += str(ipouts) + ', '
+        # lines for BAopp
+        baopp = float(stint['H']) / (int(stint['BF']) - int(stint['HBP']) -
+                                     int(stint['BB']) - int(stint['IBB']))
+        ss += str('%.3f' % baopp)[1:] + ")"
+        insert_strings.append(ss)
+
+    if empty_warning:  # nb, can likely get rid of this
+        pprint.pprint(empty_warning)
+    return insert_strings
+
+
+# making biggish changes, just making sure I have a copy
+def insert_pitcher_old(key, stats_dict, team_dict, fields_array):
     """Create insertion string(s)."""
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
