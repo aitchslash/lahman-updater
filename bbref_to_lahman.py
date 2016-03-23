@@ -17,6 +17,11 @@ Notes:
 
 
 ToDo:
+test pitching string maker
+delete 2015 data
+fix columns
+run insert of pitching data
+
 use new p_batting_against csv - make/dict
 alter p table to include new stats - fip, maybe more from orig
     may need a table reset f(x)
@@ -211,7 +216,7 @@ def make_team_dict():
                    WHERE yearID = 2014'''
     cursor.execute(statement)
     team_tuples = cursor.fetchall()
-    print len(team_tuples)
+    # print len(team_tuples)
     cursor.close()
     team_dict = {team[1]: team[0] for team in team_tuples}
     return team_dict
@@ -223,7 +228,6 @@ def expand_p_test():
     soup_orig = extract_page(arms_html)
     ids = get_ids(soup)
     ids_orig = get_ids(soup_orig)
-    # compare
     fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
@@ -232,19 +236,13 @@ def expand_p_test():
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
             sd[p_id].update(sd_orig[p_id])
-            try:
-                sd[p_id]['BAopp'] = sd[p_id].pop('BA')
-            except:
-                print "Problem w/ BA. ID: ",
-                print p_id
+            sd[p_id]['BAopp'] = sd[p_id].pop('BA')
+            sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
         else:  # more than one stint
             for stint in sd[p_id].keys():
                 sd[p_id][stint].update(sd_orig[p_id][stint])
-                try:
-                    sd[p_id][stint]['BAopp'] = sd[p_id][stint].pop('BA')
-                except:
-                    print "Huh? ",
-                    print p_id
+                sd[p_id][stint]['BAopp'] = sd[p_id][stint].pop('BA')
+                sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
     sd = fix_mismatches(sd)
 
     return soup, sd, sd_orig
@@ -433,9 +431,8 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
             stats[stint_key]['stint'] = str(stint_key[-1])
             stints.append(stats[stint_key])
 
-    # move IPouts and BAOpp to end of array
+    # move IPouts to end of array
     fields_array.append(fields_array.pop(fields_array.index('IPouts')))
-    fields_array.append(fields_array.pop(fields_array.index('BAOpp')))
 
     insert_strings = []
     empty_warning = set()  # nb, likely served its purpose
@@ -451,9 +448,13 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
         ss += str(stint['stint']) + ", "
         ss += "'" + team_dict[stint["Tm"]] + "', "
         ss += "'" + stint['Lg'] + "', "
+        # update = ['BAopp', 'GIDP', 'SF', 'SH', 'OBP',
+        # 'OPS', 'ROE', 'SLG', 'BAbip']
         stat_keys = ['W', 'L', 'G', 'GS', 'CG', 'SHO', 'SV', 'H',
                      'ER', 'HR', 'BB', 'SO', 'ERA', 'IBB', 'WP', 'HBP',
-                     'BK', 'BF', 'GF', "R"]
+                     'BK', 'BF', 'GF', "R",
+                     'BAopp', 'PA', 'WHIP', 'SO/W', 'FIP', 'ERA+', 'ROE',
+                     'BAbip', 'SLG', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'SLG']
         for sk in stat_keys:
             if stint[sk]:
                 if stint[sk] != 'inf':  # ERA = infinity
@@ -463,21 +464,25 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
             else:
                 ss += '0, '
                 empty_warning.add(key)  # nb, this is likely done too.
-        # NULL for sh, sf, and gidp
-        ss += "NULL, NULL, NULL, "
+
         # lines for IPouts
         last_digit = str(float(stint['IP']))[-1]
         ipouts = int(float(stint['IP'])) * 3 + int(last_digit)
-        ss += str(ipouts) + ', '
-        # lines for BAopp
-        baopp = float(stint['H']) / (int(stint['BF']) - int(stint['HBP']) -
-                                     int(stint['BB']) - int(stint['IBB']))
-        ss += str('%.3f' % baopp)[1:] + ")"
+        ss += str(ipouts) + ')'
         insert_strings.append(ss)
 
     if empty_warning:  # nb, can likely get rid of this
         pprint.pprint(empty_warning)
     return insert_strings
+
+
+def ins_tester():
+    """Test string maker."""
+    a, sd, c = expand_p_test()
+    td = make_team_dict()
+    cols = get_columns('pitching')
+    pprint.pprint(insert_pitcher('priceda01', sd, td, cols))
+    return sd, td, cols
 
 
 # making biggish changes, just making sure I have a copy
