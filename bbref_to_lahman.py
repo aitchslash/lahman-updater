@@ -287,8 +287,9 @@ def setup():
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     batting_dict = fix_mismatches(batting_dict)
     fix_csv(arms_csv)
-    pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
-    pitching_dict = fix_mismatches(pitching_dict)
+    # pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
+    # pitching_dict = fix_mismatches(pitching_dict)
+    a, pitching_dict, c = expand_p_test()
     team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
@@ -494,6 +495,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
         stat_keys = fields_array[5:-1]
         # print "stat_keys"
         # pprint.pprint stat_keys
+        # print stint
         for sk in stat_keys:
             if stint[sk]:
                 if stint[sk] != 'inf':  # ERA = infinity
