@@ -278,21 +278,26 @@ def expand_p_test():
 
 def setup():
     """Run one-time queries and audit data."""
+    
     b_soup = extract_page(bats_html)
     p_soup = extract_page(arms_html)
     ids = get_ids(b_soup)
     p_ids = get_ids(p_soup)
     ids.update(p_ids)
+    # add rookies
     fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     batting_dict = fix_mismatches(batting_dict)
     fix_csv(arms_csv)
+    # old lines, might be useful if not adding expanded data
     # pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
     # pitching_dict = fix_mismatches(pitching_dict)
     a, pitching_dict, c = expand_p_test()
     team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
+    # if pitching cols need to be added
+    #   add_pitching_cols
     return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
 
 
