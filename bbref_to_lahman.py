@@ -278,17 +278,21 @@ def expand_p_test():
 
 def setup():
     """Run one-time queries and audit data."""
-    soup = extract_page(bats_html)
-    ids = get_ids(soup)
+    b_soup = extract_page(bats_html)
+    p_soup = extract_page(arms_html)
+    ids = get_ids(b_soup)
+    p_ids = get_ids(p_soup)
+    ids.update(p_ids)
+    fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     batting_dict = fix_mismatches(batting_dict)
-    # is this wrong?  should ids for pitcher be sourced from diff soup
+    fix_csv(arms_csv)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
     pitching_dict = fix_mismatches(pitching_dict)
     team_dict = make_team_dict()
-    batting_fields = get_columns('batting')
-    pitching_fields = get_columns('pitching')
-    return batting_dict, team_dict, batting_fields, pitching_dict, pitching_fields
+    batting_cols = get_columns('batting')
+    pitching_cols = get_columns('pitching')
+    return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
 
 
 def ins_table_data(table='batting'):
