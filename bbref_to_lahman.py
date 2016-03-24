@@ -17,6 +17,8 @@ Notes:
 
 
 ToDo:
+rework rookie_deets to insert rather than update
+
 test pitching string maker
 delete 2015 data
 fix columns
@@ -146,6 +148,16 @@ def get_ids(soup):
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
         name_bbref_dict[name] = bbref_id
     return name_bbref_dict
+
+
+def make_id_dict():
+    """Create dict mapping."""
+    b_soup = extract_page(bats_html)
+    p_soup = extract_page(arms_html)
+    ids = get_ids(b_soup)
+    p_ids = get_ids(p_soup)
+    ids.update(p_ids)
+    return ids
 
 
 def make_people_dict(people_csv):
@@ -297,7 +309,12 @@ def setup():
     pitching_cols = get_columns('pitching')
     # if pitching cols need to be added i.e. != 40 or == 30
     #   add_pitching_cols
-    return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
+    id_set = set()
+    id_set.update(pitching_dict.keys())
+    id_set.update(batting_dict.keys())
+    rookie_set = set(find_rookies(id_set))
+    update_master(rookie_set)
+    return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols, rookie_set  # will need to remove id_set
 
 
 def ins_table_data(table='batting'):
@@ -541,7 +558,8 @@ def reset_db(table='batting', year=year):
     cursor.close()
 
 
-def find_rookies():
+# likely don't need this anymore
+def find_rookies_old():
     """Return set of bbrefIDs not in Master."""
     """Tables need to be populated first."""
     tables = ['batting', 'pitching', 'fielding']
@@ -567,6 +585,20 @@ def find_rookies():
         rookie_set.update(rookies)
     cursor.close()
     return rookie_set
+
+
+def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
+    """Find ids in id_set NOT IN master."""
+    rookie_list = []
+    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    cursor = mydb.cursor()
+    for id_ in id_set:
+        statement = "select nameFirst from master where playerid='%s'" % (id_)
+        cursor.execute(statement)
+        result = cursor.fetchone()
+        if not result:
+            rookie_list.append(id_)
+    return rookie_list
 
 
 def populate_master(rookie_set):
@@ -616,7 +648,7 @@ def get_carrots(rookie_id):
     carrots = carrots.find_all('p')
     carrot_strs = [c.encode('utf-8').strip() for c in carrots]
     right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
-    print right_one
+    # print right_one
     return carrots
 
 
@@ -702,7 +734,7 @@ def rookie_deets(rookie_id):
 
 
 # likely don't need this.
-def rookies_to_update():
+def rookies_to_update_old():
     """Return list of rookies already inserted in master."""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
@@ -716,17 +748,15 @@ def rookies_to_update():
     return rooks
 
 
-
-
-def update_master():
+def update_master(rookie_list):
     """Update master table w/ data from bbref player pages."""
     """Sleep timer makes it easier on bbref but slows things down."""
-    rookie_list = rookies_to_update()
+    # rookie_list = rookies_to_update()
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     for rookie in rookie_list:
         statement = rookie_deets(rookie)
-        # print statement
+        print statement
         cursor.execute(statement)
         sleep(0.5)
     mydb.commit()
