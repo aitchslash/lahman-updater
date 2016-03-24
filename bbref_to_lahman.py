@@ -530,67 +530,6 @@ def ins_tester():
     return sd, td, cols
 
 
-# making biggish changes, just making sure I have a copy
-def insert_pitcher_old(key, stats_dict, team_dict, fields_array):
-    """Create insertion string(s)."""
-    """Returns an array of sql commands to be executed."""
-    stats = stats_dict[key]
-    stints = []
-    if len(stats) == 35:  # only one stint
-        stats['stint'] = 1
-        stints.append(stats)
-    else:
-        for stint_key in stats.keys():
-            stats[stint_key]['stint'] = str(stint_key[-1])
-            stints.append(stats[stint_key])
-
-    # move IPouts and BAOpp to end of array
-    fields_array.append(fields_array.pop(fields_array.index('IPouts')))
-    fields_array.append(fields_array.pop(fields_array.index('BAOpp')))
-
-    insert_strings = []
-    empty_warning = set()  # nb, likely served its purpose
-    for stint in stints:
-        statement_start = "INSERT INTO pitching ("
-        for field in fields_array:
-            statement_start += field + ", "
-        statement_start = statement_start[:-2] + ") VALUES ("
-        ss = statement_start
-        # print key  # test print
-        ss += "'" + key + "', "
-        ss += year + ", "
-        ss += str(stint['stint']) + ", "
-        ss += "'" + team_dict[stint["Tm"]] + "', "
-        ss += "'" + stint['Lg'] + "', "
-        stat_keys = ['W', 'L', 'G', 'GS', 'CG', 'SHO', 'SV', 'H',
-                     'ER', 'HR', 'BB', 'SO', 'ERA', 'IBB', 'WP', 'HBP',
-                     'BK', 'BF', 'GF', "R"]
-        for sk in stat_keys:
-            if stint[sk]:
-                if stint[sk] != 'inf':  # ERA = infinity
-                    ss += stint[sk] + ', '
-                else:
-                    ss += '99.99, '  # arbitrarily set ERA to 99.99
-            else:
-                ss += '0, '
-                empty_warning.add(key)  # nb, this is likely done too.
-        # NULL for sh, sf, and gidp
-        ss += "NULL, NULL, NULL, "
-        # lines for IPouts
-        last_digit = str(float(stint['IP']))[-1]
-        ipouts = int(float(stint['IP'])) * 3 + int(last_digit)
-        ss += str(ipouts) + ', '
-        # lines for BAopp
-        baopp = float(stint['H']) / (int(stint['BF']) - int(stint['HBP']) -
-                                     int(stint['BB']) - int(stint['IBB']))
-        ss += str('%.3f' % baopp)[1:] + ")"
-        insert_strings.append(ss)
-
-    if empty_warning:  # nb, can likely get rid of this
-        pprint.pprint(empty_warning)
-    return insert_strings
-
-
 def reset_db(table='batting', year=year):
     """Clear out all entries w/ yearID = year."""
     """Set table='pitching' to reset that table"""
@@ -665,79 +604,6 @@ def populate_master(rookie_set):
     mydb.commit()
     cursor.close()
     return
-
-
-def pitching_deets(pitcher_tuple):
-    """Make UPDATE string for pitching update."""
-    """Need S, SF, GIDP from bbref."""
-    # likely just want to make headers once. Remove from loop
-    p_id, bbref_id = pitcher_tuple[0], pitcher_tuple[1]
-    update_str = "UPDATE pitching SET "
-    # sample url:
-    # http://www.baseball-reference.com/players/f/floydga01-pitch.shtml
-    url_start = "http://www.baseball-reference.com/players/"
-    url = url_start + bbref_id[0] + "/" + bbref_id + "-pitch.shtml"
-    page = urllib2.urlopen(url).read()
-    soup = BeautifulSoup(page, 'html.parser')
-    headers = soup.find(id="pitching_batting").find_all('th')
-    headers = [h.text.encode('utf-8') for h in headers]
-    # make formats match
-    headers[headers.index('BA')] = 'BAopp'
-    headers[headers.index('GDP')] = 'GIDP'
-    row_id = 'pitching_batting.%s' % year
-    tds = soup.find(id=row_id).find_all('td')
-    stats = [t.text.encode('utf-8') for t in tds]
-    year_dict = dict(zip(headers, stats))
-    # could run checks here
-    # both against repeat data and for length
-    update = ['BAopp', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'ROE', 'SLG', 'BAbip']
-    # could use PA and PAu for further check
-    for stat in update:
-        if not year_dict[stat]:
-            year_dict[stat] = 'NULL'
-        update_str += stat + "=" + year_dict[stat] + ", "
-    update_str = update_str[:-2] + " WHERE playerID='" + p_id + "'" + "AND yearID=" + year
-    # print update_str
-
-    return update_str  # soup, tds, headers  # good stuff for debugging
-
-# these gave me issues, seems to be fixed but leaving it in just in case
-to_fix = [('burneaj01', 'burnea.01'), ('delarjo01', 'rosajo01'),
-          ('dickera01', 'dicker.01'), ('harriwi02', 'harriwi10'),
-          ('lizra01', 'lizra01'), ('nathajo01', 'nathajo01'),
-          ('sabatcc01', 'sabatc.01'), ('smithch08', 'smithch09'),
-          ('willije02', 'willije01')]
-
-
-def update_pitching(pitcher_tuples, trials=3):
-    """"Update db with pitching data from bbref."""
-    """Pitcher tuples from pitchers_to_update()"""
-    """Timeouts and errors create problems.  Collect them and recursively
-    try again."""
-    # pitchers = pitchers_to_update()
-    problems = []
-    trials = trials - 1
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    for p in pitcher_tuples:
-        try:
-            statement = pitching_deets(p)
-            # print statement
-            cursor.execute(statement)
-            sleep(0.5)
-        except:
-            print "Something awry with " + p[0]
-            problems.append(p)
-    mydb.commit()
-    cursor.close()
-    if problems and trials >= 0:
-        # recursively try again
-        update_pitching(problems, trials=trials)
-    elif problems:
-        print "Out of trials. Problems with: "
-        pprint.pprint(problems)
-    else:
-        print "Pitcher update seemed to go well."
 
 
 def get_carrots(rookie_id):
@@ -835,37 +701,7 @@ def rookie_deets(rookie_id):
     return update_string
 
 
-# can likely get rid of this
-def pitchers_to_update_old():
-    """Return list of pitchers w/ 2015 stats."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement = "SELECT playerID FROM pitching where yearID = %s" % (year)
-    print statement
-    cursor.execute(statement)
-    pitchers = cursor.fetchall()
-    cursor.close()
-    pitchers = [p[0] for p in pitchers]
-    return pitchers
-
-
-def pitchers_to_update():
-    """Return list of pitcher tuples (p_id, bbref_id) w/ 2015 stats."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement = '''SELECT pitching.playerID, master.bbrefID
-                   FROM  pitching
-                   LEFT JOIN master ON pitching.playerID = master.playerID
-                   WHERE pitching.yearID = %s''' % (year)
-    # statement = """SELECT playerID FROM pitching where yearID = %s""" % (year)
-    print statement
-    cursor.execute(statement)
-    pitchers = cursor.fetchall()
-    cursor.close()
-    pitchers = [(p[0], p[1]) for p in pitchers]
-    return pitchers
-
-
+# likely don't need this.
 def rookies_to_update():
     """Return list of rookies already inserted in master."""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
@@ -878,6 +714,8 @@ def rookies_to_update():
     cursor.close()
     rooks = [rook[0] for rook in rooks]
     return rooks
+
+
 
 
 def update_master():
