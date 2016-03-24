@@ -297,10 +297,10 @@ def setup():
 
 def ins_table_data(table='batting'):
     """Insert table data."""
-    batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols = setup()
+    bats_dict, team_dict, bats_cols, pitching_dict, pitching_cols = setup()
     if table == 'batting':
-        table_data = batting_dict
-        cols_array = batting_cols
+        table_data = bats_dict
+        cols_array = bats_cols
         insert_player = insert_batter
     else:
         table_data = pitching_dict
