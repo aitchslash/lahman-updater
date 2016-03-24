@@ -297,21 +297,21 @@ def setup():
 
 def ins_table_data(table='batting'):
     """Insert table data."""
-    batting_dict, team_dict, batting_fields, pitching_dict, pitching_fields = setup()
+    batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols = setup()
     if table == 'batting':
         table_data = batting_dict
-        fields_array = batting_fields
+        cols_array = batting_cols
         insert_player = insert_batter
     else:
         table_data = pitching_dict
-        fields_array = pitching_fields
+        cols_array = pitching_cols
         insert_player = insert_pitcher
     print 'setup run, opening db...'
     print 'inserting into ' + table + "..."
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     for key in table_data.keys():
-        statements = insert_player(key, table_data, team_dict, fields_array)
+        statements = insert_player(key, table_data, team_dict, cols_array)
         for statement in statements:
             # print statement
             cursor.execute(statement)
