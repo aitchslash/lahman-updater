@@ -258,7 +258,7 @@ def expand_p_test():
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
             sd[p_id].update(sd_orig[p_id])
-            sd[p_id]['BAopp'] = sd[p_id].pop('BA')
+            sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
             sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
             sd[p_id]['BFP'] = sd[p_id].pop('BF')
             sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
@@ -266,11 +266,11 @@ def expand_p_test():
         else:  # more than one stint
             for stint in sd[p_id].keys():
                 sd[p_id][stint].update(sd_orig[p_id][stint])
-                sd[p_id][stint]['BAopp'] = sd[p_id][stint].pop('BA')
+                sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
                 sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
                 sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
                 sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
-                sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SOperW')
+                sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
     sd = fix_mismatches(sd)
 
     return soup, sd, sd_orig
@@ -451,7 +451,8 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
     stints = []
-    if len(stats) == 35:  # only one stint
+    # if len(stats) == 35:  # only one stint # old line
+    if len(stats) > 10:  # only one stint
         stats['stint'] = 1
         stints.append(stats)
     else:
@@ -461,6 +462,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
 
     # move IPouts to end of array
     fields_array.append(fields_array.pop(fields_array.index('IPouts')))
+    # print field
 
     insert_strings = []
     empty_warning = set()  # nb, likely served its purpose
@@ -485,7 +487,9 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
                      'BAopp', 'PA', 'WHIP', 'SOperW', 'FIP', 'ERAplus', 'ROE',
                      'BAbip', 'SLG', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'SLG']
         """
-        stat_keys = fields_array[5:]
+        stat_keys = fields_array[5:-1]
+        # print "stat_keys"
+        # pprint.pprint stat_keys
         for sk in stat_keys:
             if stint[sk]:
                 if stint[sk] != 'inf':  # ERA = infinity
