@@ -278,7 +278,6 @@ def expand_p_test():
 
 def setup():
     """Run one-time queries and audit data."""
-    
     b_soup = extract_page(bats_html)
     p_soup = extract_page(arms_html)
     ids = get_ids(b_soup)
@@ -296,7 +295,7 @@ def setup():
     team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
-    # if pitching cols need to be added
+    # if pitching cols need to be added i.e. != 40 or == 30
     #   add_pitching_cols
     return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
 
@@ -462,7 +461,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     stats = stats_dict[key]
     stints = []
     # if len(stats) == 35:  # only one stint # old line
-    if len(stats) > 10:  # only one stint
+    if len(stats) == 52:  # only one stint
         stats['stint'] = 1
         stints.append(stats)
     else:
