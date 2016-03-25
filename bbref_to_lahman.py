@@ -178,13 +178,8 @@ def make_people_dict(people_csv):
     with open(people_csv, 'rb') as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
-        print (header)  # just for pep-8
-        # reader.fieldnames[2] = 'mlbamID'
-        # header[2] = 'mlbamID'
-        # loop through header
-        #   change key to ID
-        #   pop underscores and uppercase next letter
-        # header = [i[4:] + "ID" if i.find("key_") != -1 else i for i in header]
+
+        # rename keys to match lahman
         for i in range(0, len(header)):
             if header[i].find('key_') == 0:
                 header[i] = header[i][4:] + "ID"
@@ -200,9 +195,6 @@ def make_people_dict(people_csv):
             if row['birthYear'] and int(row['birthYear']) > int(year) - 50:
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
-                # rename keys to match lahman
-                # e.g. # sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
-
         return people_dict, header
 
 
@@ -638,16 +630,38 @@ def populate_master(rookie_set, expanded=True):
     # check cols right length
     #   if not insert mlbamID
     if len(cols) == 24 and expanded is True:
+        add_mlbamid_master()
+    else:
+        assert len(cols) == 25
 
-    # rename keys from chadwick to match lahman
-    # e.g. # sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
-    ppl_dict
     missing = ['deathCountry', 'deathState', 'deathCity', 'finalGame']
-    empty = ['deathYear', 'deathMonth', 'deathDay']
+    # empty = ['deathYear', 'deathMonth', 'deathDay']
+    # move missing to the end
+    for field in missing:
+        cols.append(cols.pop(cols.index(field)))
+
     # mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     # cursor = mydb.cursor()
     statement_start = "INSERT INTO master ("
-    pass
+    for col in cols:
+        statement_start += col + ", "
+    statement = statement_start[-2] + ") VALUES ("
+
+    for rookie in rookie_set:
+        # data from bbref
+        a, rookie_data = rookie_deets(rookie)
+        # data from chadwick
+        rookie_data.update(ppl_dict[rookie])
+        for col in cols:
+            if rookie_data[col]:
+                if rookie_data.isdigit() is False:
+                    statement += "'" + rookie_data[col] + "', "
+                else:
+                    statement += rookie_data[col] + ", "
+            else:
+                statement += "NULL, "
+        statement = statement[-2] + ")"
+    return statement
 
 
 def populate_master_old(rookie_set):
