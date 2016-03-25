@@ -5,7 +5,7 @@ In order to extract the bbref ID's a copy of the html will
 have to be scraped as well.
 
 Notes:
-1) had to erase blank first line in bbref_2015_batting - taken care of
+1) Adding mlb advanced media ID as default.  Using VARCHAR (int instead?)
 2) Ensure that "Hide non-qualifiers for rate stats" is the same on all docs
 3) Stint is not assured to be correct. Relies on bbref order
 4) BAopp for pitchers lacks SH, S and GIDP so is inexact
@@ -109,6 +109,17 @@ def add_pitching_columns():
     cursor.close()
 
 
+def add_mlbamid_master():
+    """Add column for mlb adv media ID to master."""
+    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    cursor = mydb.cursor()
+    statement = """ALTER TABLE master
+                   ADD COLUMN mlbamID VARCHAR(11) DEFAULT NULL"""
+    cursor.execute(statement)
+    mydb.commit()
+    cursor.close()
+
+
 def rm_cols():
     """Reset columns in pitching."""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
@@ -167,14 +178,32 @@ def make_people_dict(people_csv):
     with open(people_csv, 'rb') as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
-        print header  # just for pep-8
+        print (header)  # just for pep-8
+        # reader.fieldnames[2] = 'mlbamID'
+        # header[2] = 'mlbamID'
+        # loop through header
+        #   change key to ID
+        #   pop underscores and uppercase next letter
+        # header = [i[4:] + "ID" if i.find("key_") != -1 else i for i in header]
+        for i in range(0, len(header)):
+            if header[i].find('key_') == 0:
+                header[i] = header[i][4:] + "ID"
+        for i in range(0, len(header)):
+            j = header[i].find("_")
+            if j != -1:
+                header[i] = header[i][:j] + header[i][j + 1].upper() + header[i][j + 2:]
+
+        print header
         for row in reader:
-            people_dict
+            # people_dict
             # limit dictionary to those youger than 50
-            if row['birth_year'] and int(row['birth_year']) > int(year) - 50:
-                bbref_id = row['key_bbref']
+            if row['birthYear'] and int(row['birthYear']) > int(year) - 50:
+                bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
-        return people_dict
+                # rename keys to match lahman
+                # e.g. # sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
+
+        return people_dict, header
 
 
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
@@ -601,7 +630,27 @@ def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
     return rookie_list
 
 
-def populate_master(rookie_set):
+def populate_master(rookie_set, expanded=True):
+    """Insert rookies into master."""
+    """Expanded will insert mlb adv med ID into master."""
+    ppl_dict = make_people_dict(people_csv)
+    cols = get_columns('master')
+    # check cols right length
+    #   if not insert mlbamID
+    if len(cols) == 24 and expanded is True:
+
+    # rename keys from chadwick to match lahman
+    # e.g. # sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
+    ppl_dict
+    missing = ['deathCountry', 'deathState', 'deathCity', 'finalGame']
+    empty = ['deathYear', 'deathMonth', 'deathDay']
+    # mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    # cursor = mydb.cursor()
+    statement_start = "INSERT INTO master ("
+    pass
+
+
+def populate_master_old(rookie_set):
     """Insert rookies into master."""
     ppl_dict = make_people_dict(people_csv)
     cols = get_columns('master')
@@ -648,12 +697,13 @@ def get_carrots(rookie_id):
     carrots = carrots.find_all('p')
     carrot_strs = [c.encode('utf-8').strip() for c in carrots]
     right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
-    # print right_one
+    print right_one
     return carrots
 
 
 def rookie_deets(rookie_id):
     """Make UPDATE string for rookie update."""
+    """Return update_string and data list"""
     update_string = "UPDATE master SET "
     # rookie_id = 'walkela01'
     url_start = "http://www.baseball-reference.com/players/"
@@ -730,7 +780,11 @@ def rookie_deets(rookie_id):
     update_string += "debut=" + debut_time + " "
     update_string += "WHERE playerID='" + rookie_id + "'"
     # pprint.pprint(update_string)
-    return update_string
+    rook_data = {'bats': bats, 'throws': throws, 'height': height,
+                 'weight': weight, 'birthYear': year, 'birthMonth': month,
+                 'birthDay': day, 'birthCity': birth_city, 'birthState': birth_state,
+                 'birthCountry': birth_country, 'debut': debut_time}
+    return update_string, rook_data
 
 
 # likely don't need this.
@@ -755,8 +809,8 @@ def update_master(rookie_list):
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     for rookie in rookie_list:
-        statement = rookie_deets(rookie)
-        print statement
+        statement, rook_data = rookie_deets(rookie)
+        # print statement
         cursor.execute(statement)
         sleep(0.5)
     mydb.commit()
