@@ -115,7 +115,7 @@ def add_mlbamid_master():
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     statement = """ALTER TABLE master
-                   ADD COLUMN mlbamID VARCHAR(11) DEFAULT NULL"""
+                   ADD COLUMN mlbamID INT(11) DEFAULT NULL"""
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
@@ -335,7 +335,7 @@ def setup():
     id_set.update(pitching_dict.keys())
     id_set.update(batting_dict.keys())
     rookie_set = set(find_rookies(id_set))
-    update_master(rookie_set)
+    populate_master(rookie_set)
     return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols, rookie_set  # will need to remove id_set
 
 
@@ -643,30 +643,62 @@ def populate_master(rookie_set, expanded=True):
     for field in missing:
         cols.append(cols.pop(cols.index(field)))
 
-    # mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    # cursor = mydb.cursor()
+    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    cursor = mydb.cursor()
     statement_start = "INSERT INTO master ("
     for col in cols:
         statement_start += col + ", "
-    statement = statement_start[:-2] + ") VALUES ("
+    statement_start = statement_start[:-2] + ") VALUES ("
 
     for rookie in rookie_set:
+        statement = statement_start
         # data from bbref
         a, rookie_data = rookie_deets(rookie)
         # data from chadwick
         rookie_data.update(ppl_dict[rookie])
         # set finalGame
         rookie_data['finalGame'] = "'" + year + "-12-31 00:00:00'"
+        """
+        else:
+            last = ppl_dict[rookie]['name_last']
+            apos_at = last.find("'")
+            surname_hack = last[:apos_at] + "'" + last[apos_at:]
+            statement += "'" + surname_hack + "', "
+        """
         for col in cols:
-            datum = rookie_data.get(col, 'NULL')
+            datum = rookie_data.get(col, '')
             if datum and datum.isdigit() is False and col not in dates:
+                # hack for birthState
+                if col == 'birthState' and len(datum) > 2:
+                    datum = datum[:2]
+                if col == 'nameLast':
+                    apos_at = datum.find("'")
+                    if apos_at != -1:
+                        datum = datum[:apos_at] + "'" + datum[apos_at:]
                 statement += "'" + datum + "', "
             elif datum.isdigit() or col in dates:
                 statement += datum + ", "
             else:
                 statement += 'NULL, '
         statement = statement[:-2] + ")"
-    return statement
+        if len(statement) > 550:
+            print "too_long: " + statement
+
+        cursor.execute(statement)
+        sleep(0.5)
+
+    mydb.commit()
+    cursor.close()
+    return  # statement
+
+
+def rook_ins_test(ins_statement):
+    """Test rookie insert."""
+    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    cursor = mydb.cursor()
+    cursor.execute(ins_statement)
+    mydb.commit()
+    cursor.close()
 
 
 def populate_master_old(rookie_set):
@@ -747,7 +779,7 @@ def rookie_deets(rookie_id):
         return carrots
     # bi -> index of bats in carrots.  Mult positions throws this off
     bi = [ndx for ndx, item in enumerate(carrots) if item.startswith('Bats')]
-    print carrots
+    # print carrots
     bi = bi[0]
     bats = carrots[bi][carrots[bi].find(" ") + 1]
     update_string += "bats='" + bats + "', "
@@ -842,7 +874,8 @@ def reset_master():
     """May want to change debut to lastGame"""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
-    statement = """DELETE FROM master where debut < '1800-01-01 00:00:00' and
+    statement = """DELETE FROM master
+                   where debut < '1800-01-01 00:00:00' and
                    birthYear > 1960"""
     cursor.execute(statement)
     mydb.commit()
