@@ -195,7 +195,7 @@ def make_people_dict(people_csv):
             if row['birthYear'] and int(row['birthYear']) > int(year) - 50:
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
-        return people_dict, header
+        return people_dict
 
 
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
@@ -631,6 +631,7 @@ def populate_master(rookie_set, expanded=True):
     #   if not insert mlbamID
     if len(cols) == 24 and expanded is True:
         add_mlbamid_master()
+        print "trying to add mlbamID to master"
     else:
         assert len(cols) == 25
 
@@ -645,7 +646,7 @@ def populate_master(rookie_set, expanded=True):
     statement_start = "INSERT INTO master ("
     for col in cols:
         statement_start += col + ", "
-    statement = statement_start[-2] + ") VALUES ("
+    statement = statement_start[:-2] + ") VALUES ("
 
     for rookie in rookie_set:
         # data from bbref
@@ -653,14 +654,25 @@ def populate_master(rookie_set, expanded=True):
         # data from chadwick
         rookie_data.update(ppl_dict[rookie])
         for col in cols:
+            datum = rookie_data.get(col, 'NULL')
+            print col + ": ",
+            print datum
+            if datum and datum.isdigit() is False and col != 'debut':
+                statement += "'" + datum + "', "
+            elif datum.isdigit() or col == 'debut':
+                statement += datum + ", "
+            else:
+                statement += 'NULL, '
+            '''
             if rookie_data[col]:
-                if rookie_data.isdigit() is False:
+                if rookie_data[col].isdigit() is False:
                     statement += "'" + rookie_data[col] + "', "
                 else:
                     statement += rookie_data[col] + ", "
             else:
                 statement += "NULL, "
-        statement = statement[-2] + ")"
+            '''
+        statement = statement[:-2] + ")"
     return statement
 
 
@@ -796,7 +808,8 @@ def rookie_deets(rookie_id):
     # pprint.pprint(update_string)
     rook_data = {'bats': bats, 'throws': throws, 'height': height,
                  'weight': weight, 'birthYear': year, 'birthMonth': month,
-                 'birthDay': day, 'birthCity': birth_city, 'birthState': birth_state,
+                 'birthDay': day, 'birthCity': birth_city,
+                 'playerID': rookie_id, 'birthState': birth_state,
                  'birthCountry': birth_country, 'debut': debut_time}
     return update_string, rook_data
 
