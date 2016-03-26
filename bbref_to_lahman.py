@@ -13,6 +13,7 @@ Notes:
 6) no recorded out leads to an infinite ERA - using 99.99
 7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
+8) Setting new players last game to year-12-31 so they're easy to find
 
 
 
@@ -636,6 +637,7 @@ def populate_master(rookie_set, expanded=True):
         assert len(cols) == 25
 
     missing = ['deathCountry', 'deathState', 'deathCity', 'finalGame']
+    dates = ['debut', 'finalGame']
     # empty = ['deathYear', 'deathMonth', 'deathDay']
     # move missing to the end
     for field in missing:
@@ -653,25 +655,16 @@ def populate_master(rookie_set, expanded=True):
         a, rookie_data = rookie_deets(rookie)
         # data from chadwick
         rookie_data.update(ppl_dict[rookie])
+        # set finalGame
+        rookie_data['finalGame'] = "'" + year + "-12-31 00:00:00'"
         for col in cols:
             datum = rookie_data.get(col, 'NULL')
-            print col + ": ",
-            print datum
-            if datum and datum.isdigit() is False and col != 'debut':
+            if datum and datum.isdigit() is False and col not in dates:
                 statement += "'" + datum + "', "
-            elif datum.isdigit() or col == 'debut':
+            elif datum.isdigit() or col in dates:
                 statement += datum + ", "
             else:
                 statement += 'NULL, '
-            '''
-            if rookie_data[col]:
-                if rookie_data[col].isdigit() is False:
-                    statement += "'" + rookie_data[col] + "', "
-                else:
-                    statement += rookie_data[col] + ", "
-            else:
-                statement += "NULL, "
-            '''
         statement = statement[:-2] + ")"
     return statement
 
