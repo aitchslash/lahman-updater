@@ -18,6 +18,11 @@ Notes:
 
 
 ToDo:
+check fielding for aj pierzynski and rusney castillo
+reset_db and test again
+delete old code and print statements
+
+
 rework rookie_deets to insert rather than update
 
 test pitching string maker
@@ -200,6 +205,16 @@ def make_people_dict(people_csv):
         return people_dict
 
 
+def get_fielding_dict():
+    """Test."""
+    csv, shtml = make_paths('P')
+    fix_csv(csv)
+    soup = extract_page(shtml)
+    ids = get_ids(soup)
+    fd = make_bbrefid_stats_dict(csv, ids, table='P')
+    return fd
+
+
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     """Make dictionary mapping bbrefID (as key) to extracted stats (values)."""
     """multiple teams stats are nested as stints"""
@@ -216,7 +231,8 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
         if table == 'P':
             # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
-            field_len = 35
+            print header
+            # field_len = 25 # 35 caused headaches
 
         # read the lines from the csv
         for row in reader:
@@ -455,6 +471,8 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
         stints.append(stats)
     else:  # unpack stints into the array
         for stint_key in stats.keys():
+            # print stats
+            # print key
             stats[stint_key]['stint'] = str(stint_key[-1])
             stints.append(stats[stint_key])
 
