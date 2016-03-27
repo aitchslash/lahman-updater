@@ -162,6 +162,7 @@ def get_ids(soup):
     return name_bbref_dict
 
 
+# atm, unused
 def make_id_dict():
     """Create dict mapping."""
     b_soup = extract_page(bats_html)
@@ -336,19 +337,23 @@ def setup():
     id_set.update(batting_dict.keys())
     rookie_set = set(find_rookies(id_set))
     populate_master(rookie_set)
+    ins_table_data(batting_dict, batting_cols, table='batting')
+    ins_table_data(pitching_dict, pitching_cols, table='pitching')
+    ins_fielding()
     return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols, rookie_set  # will need to remove id_set
 
 
-def ins_table_data(table='batting'):
+def ins_table_data(table_data, cols_array, table='batting'):
     """Insert table data."""
-    bats_dict, team_dict, bats_cols, pitching_dict, pitching_cols = setup()
+    # bats_dict, team_dict, bats_cols, pitching_dict, pitching_cols = setup()
+    team_dict = make_team_dict()
     if table == 'batting':
-        table_data = bats_dict
-        cols_array = bats_cols
+        # table_data = bats_dict
+        # cols_array = bats_cols
         insert_player = insert_batter
     else:
-        table_data = pitching_dict
-        cols_array = pitching_cols
+        # table_data = pitching_dict
+        # cols_array = pitching_cols
         insert_player = insert_pitcher
     print 'setup run, opening db...'
     print 'inserting into ' + table + "..."
@@ -554,9 +559,9 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
         ipouts = int(float(stint['IP'])) * 3 + int(last_digit)
         ss += str(ipouts) + ')'
         insert_strings.append(ss)
-
+        '''
     if empty_warning:  # nb, can likely get rid of this
-        pprint.pprint(empty_warning)
+        pprint.pprint(empty_warning)'''
     return insert_strings
 
 
