@@ -19,6 +19,10 @@ Notes:
 
 
 ToDo:
+check inner f(x) in expanded pitching stats_dict
+:   currently broken - find out why
+get rid of extra print statements
+
 check fielding for aj pierzynski and rusney castillo - looks fine
 reset_db and test again -- looks good
 delete old code and print statements
@@ -540,30 +544,33 @@ def expand_pitch_stats(pitching_dict):
 
     def change_key_names(stint):
         """Change keys to match lahman columns."""
-        sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
-        sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
-        sd[p_id]['BFP'] = sd[p_id].pop('BF')
-        sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
-        sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
+        stint['BAOpp'] = stint.pop('BA')
+        stint['GIDP'] = stint.pop('GDP')
+        stint['BFP'] = stint.pop('BF')
+        stint['ERAplus'] = stint.pop('ERA+')
+        stint['SOperW'] = stint.pop('SO/W')
 
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
             sd[p_id].update(sd_orig[p_id])
+            change_key_names(sd[p_id])
+            '''
             sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
             sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
             sd[p_id]['BFP'] = sd[p_id].pop('BF')
             sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
-            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
+            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')'''
         else:  # more than one stint
             for stint in sd[p_id].keys():
                 sd[p_id][stint].update(sd_orig[p_id][stint])
+                change_key_names[stint](sd[p_id])
+                '''
                 sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
                 sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
                 sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
                 sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
                 sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
-    # sd = fix_mismatches(sd)  # did it earlier
-
+                '''
     return sd
 
 
