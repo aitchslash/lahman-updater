@@ -159,17 +159,6 @@ def get_ids(soup):
     return name_bbref_dict
 
 
-# atm, unused
-def make_id_dict():
-    """Create and return dict mapping Name to bbref_id."""
-    b_soup = extract_page(bats_html)
-    p_soup = extract_page(arms_html)
-    ids = get_ids(b_soup)
-    p_ids = get_ids(p_soup)
-    ids.update(p_ids)
-    return ids
-
-
 def make_people_dict(people_csv):
     """Return dictionary mapping bbref to master table data."""
     """Data from chadwick bureau."""
