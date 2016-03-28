@@ -18,9 +18,11 @@ Notes:
 
 
 ToDo:
-check fielding for aj pierzynski and rusney castillo
+check fielding for aj pierzynski and rusney castillo - looks fine
 reset_db and test again
 delete old code and print statements
+improve comments and doc strings
+update readme
 
 
 rework rookie_deets to insert rather than update
