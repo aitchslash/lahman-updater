@@ -14,12 +14,13 @@ Notes:
 7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
 8) Setting new players last game to year-12-31 so they're easy to find
+9) Rookie insert take a while on first run
 
 
 
 ToDo:
 check fielding for aj pierzynski and rusney castillo - looks fine
-reset_db and test again
+reset_db and test again -- looks good
 delete old code and print statements
 improve comments and doc strings
 update readme
@@ -128,21 +129,6 @@ def add_mlbamid_master():
     cursor.close()
 
 
-def rm_cols():
-    """Reset columns in pitching."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement = """ALTER TABLE pitching
-                   DROP COLUMN ROE,
-                   DROP COLUMN BAbip,
-                   DROP COLUMN OPS,
-                   DROP COLUMN SLG,
-                   DROP COLUMN OBP"""
-    cursor.execute(statement)
-    mydb.commit()
-    cursor.close()
-
-
 def extract_page(page):
     """Turn html page into a BeautifulSoup."""
     with open(page, "r") as html:
@@ -171,7 +157,7 @@ def get_ids(soup):
 
 # atm, unused
 def make_id_dict():
-    """Create dict mapping."""
+    """Create and return dict mapping Name to bbref_id."""
     b_soup = extract_page(bats_html)
     p_soup = extract_page(arms_html)
     ids = get_ids(b_soup)
@@ -205,16 +191,6 @@ def make_people_dict(people_csv):
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
         return people_dict
-
-
-def get_fielding_dict():
-    """Test."""
-    csv, shtml = make_paths('P')
-    fix_csv(csv)
-    soup = extract_page(shtml)
-    ids = get_ids(soup)
-    fd = make_bbrefid_stats_dict(csv, ids, table='P')
-    return fd
 
 
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
@@ -297,55 +273,25 @@ def make_team_dict():
     return team_dict
 
 
-def expand_p_test():
-    """Test."""
-    soup = extract_page(arms_extra_html)
-    soup_orig = extract_page(arms_html)
-    ids = get_ids(soup)
-    ids_orig = get_ids(soup_orig)
-    fix_csv(arms_extra_csv)
-    # pitching extra has len=30, same as default
-    sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
-    sd_orig = make_bbrefid_stats_dict(arms_csv, ids_orig, 'pitching')
-    assert sd.keys() == sd_orig.keys()
-    for p_id in sd.keys():
-        if len(sd[p_id].keys()) > 10:  # only one stint
-            sd[p_id].update(sd_orig[p_id])
-            sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
-            sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
-            sd[p_id]['BFP'] = sd[p_id].pop('BF')
-            sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
-            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
-        else:  # more than one stint
-            for stint in sd[p_id].keys():
-                sd[p_id][stint].update(sd_orig[p_id][stint])
-                sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
-                sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
-                sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
-                sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
-                sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
-    sd = fix_mismatches(sd)
-
-    return soup, sd, sd_orig
-
-
-def setup():
+def setup(expanded=True):
     """Run one-time queries and audit data."""
     b_soup = extract_page(bats_html)
     p_soup = extract_page(arms_html)
     ids = get_ids(b_soup)
     p_ids = get_ids(p_soup)
-    ids.update(p_ids)
+    # ids.update(p_ids)
     # add rookies
     fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     batting_dict = fix_mismatches(batting_dict)
     fix_csv(arms_csv)
     # old lines, might be useful if not adding expanded data
-    # pitching_dict = make_bbrefid_stats_dict(arms_csv, ids, table='pitching')
-    # pitching_dict = fix_mismatches(pitching_dict)
-    a, pitching_dict, c = expand_p_test()
-    team_dict = make_team_dict()
+    pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
+    pitching_dict = fix_mismatches(pitching_dict)
+    # a, pitching_dict, c = expand_p_test()
+    if expanded is True:
+        pitching_dict = expand_pitch_stats(pitching_dict)
+    # team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
     # if pitching cols need to be added i.e. != 40 or == 30
@@ -358,20 +304,16 @@ def setup():
     ins_table_data(batting_dict, batting_cols, table='batting')
     ins_table_data(pitching_dict, pitching_cols, table='pitching')
     ins_fielding()
-    return batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols, rookie_set  # will need to remove id_set
+    # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
+    return
 
 
 def ins_table_data(table_data, cols_array, table='batting'):
-    """Insert table data."""
-    # bats_dict, team_dict, bats_cols, pitching_dict, pitching_cols = setup()
+    """Insert table data for batting or pitching."""
     team_dict = make_team_dict()
     if table == 'batting':
-        # table_data = bats_dict
-        # cols_array = bats_cols
         insert_player = insert_batter
     else:
-        # table_data = pitching_dict
-        # cols_array = pitching_cols
         insert_player = insert_pitcher
     print 'setup run, opening db...'
     print 'inserting into ' + table + "..."
@@ -380,7 +322,6 @@ def ins_table_data(table_data, cols_array, table='batting'):
     for key in table_data.keys():
         statements = insert_player(key, table_data, team_dict, cols_array)
         for statement in statements:
-            # print statement
             cursor.execute(statement)
     mydb.commit()
     cursor.close()
@@ -389,7 +330,7 @@ def ins_table_data(table_data, cols_array, table='batting'):
 
 # key will be bbref_dict.keys() i.e. bbref_id
 def insert_batter(key, stats_dict, team_dict, fields_array):
-    """Create insertion string(s)."""
+    """Create insertion string(s) batting."""
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
     stints = []
@@ -525,7 +466,8 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     stats = stats_dict[key]
     stints = []
     # if len(stats) == 35:  # only one stint # old line
-    if len(stats) == 52:  # only one stint
+    # if len(stats) == 52:  # only one stint
+    if len(stats) > 10:
         stats['stint'] = 1
         stints.append(stats)
     else:
@@ -561,9 +503,6 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
                      'BAbip', 'SLG', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'SLG']
         """
         stat_keys = fields_array[5:-1]
-        # print "stat_keys"
-        # pprint.pprint stat_keys
-        # print stint
         for sk in stat_keys:
             if stint[sk]:
                 if stint[sk] != 'inf':  # ERA = infinity
@@ -585,13 +524,47 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     return insert_strings
 
 
-def ins_tester():
-    """Test string maker."""
-    a, sd, c = expand_p_test()
-    td = make_team_dict()
-    cols = get_columns('pitching')
-    pprint.pprint(insert_pitcher('priceda01', sd, td, cols))
-    return sd, td, cols
+def expand_pitch_stats(pitching_dict):
+    """Add new stats to pitching_dict."""
+    soup = extract_page(arms_extra_html)
+    # soup_orig = extract_page(arms_html)
+    ids = get_ids(soup)
+    # ids_orig = get_ids(soup_orig)
+    fix_csv(arms_extra_csv)
+    # pitching extra has len=30, same as default
+    sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
+    sd = fix_mismatches(sd)
+    sd_orig = pitching_dict
+    # make sure the two pages match up
+    assert sd.keys() == sd_orig.keys()
+
+    def change_key_names(stint):
+        """Change keys to match lahman columns."""
+        sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
+        sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
+        sd[p_id]['BFP'] = sd[p_id].pop('BF')
+        sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
+        sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
+
+    for p_id in sd.keys():
+        if len(sd[p_id].keys()) > 10:  # only one stint
+            sd[p_id].update(sd_orig[p_id])
+            sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
+            sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
+            sd[p_id]['BFP'] = sd[p_id].pop('BF')
+            sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
+            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
+        else:  # more than one stint
+            for stint in sd[p_id].keys():
+                sd[p_id][stint].update(sd_orig[p_id][stint])
+                sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
+                sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
+                sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
+                sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
+                sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
+    # sd = fix_mismatches(sd)  # did it earlier
+
+    return sd
 
 
 def reset_db(table='batting', year=year):
@@ -603,35 +576,6 @@ def reset_db(table='batting', year=year):
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
-
-
-# likely don't need this anymore
-def find_rookies_old():
-    """Return set of bbrefIDs not in Master."""
-    """Tables need to be populated first."""
-    tables = ['batting', 'pitching', 'fielding']
-    rookie_set = set()
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    for table in tables:
-        statement = """SELECT %s.playerID
-                       FROM %s
-                       left join master
-                       on %s.playerID=master.playerID
-                       where master.playerID is null
-                       and %s.yearID=%s""" % (table, table, table, table, year)
-        cursor.execute(statement)
-        rookies = cursor.fetchall()
-        # make rookies a set and format nicely
-        # rookies = set(map((lambda x: x[0]), rookies))  # this works
-        rookies = set([x[0] for x in rookies])
-        problem_ids = [b_id for b_id in rookies if b_id.isalnum() is False]
-        if problem_ids:
-            print "Problem Ids: ",
-            print problem_ids
-        rookie_set.update(rookies)
-    cursor.close()
-    return rookie_set
 
 
 def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
@@ -683,13 +627,6 @@ def populate_master(rookie_set, expanded=True):
         rookie_data.update(ppl_dict[rookie])
         # set finalGame
         rookie_data['finalGame'] = "'" + year + "-12-31 00:00:00'"
-        """
-        else:
-            last = ppl_dict[rookie]['name_last']
-            apos_at = last.find("'")
-            surname_hack = last[:apos_at] + "'" + last[apos_at:]
-            statement += "'" + surname_hack + "', "
-        """
         for col in cols:
             datum = rookie_data.get(col, '')
             if datum and datum.isdigit() is False and col not in dates:
@@ -726,57 +663,6 @@ def rook_ins_test(ins_statement):
     cursor.close()
 
 
-def populate_master_old(rookie_set):
-    """Insert rookies into master."""
-    ppl_dict = make_people_dict(people_csv)
-    cols = get_columns('master')
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement_start = "INSERT INTO master ("
-    for col in cols:
-        statement_start += col + ", "
-    for rookie in rookie_set:
-        statement = statement_start[:-2] + ") VALUES ("
-        statement += "'" + rookie + "', "
-        statement += ppl_dict[rookie]['birth_year'] + ", "
-        statement += ppl_dict[rookie]['birth_month'] + ", "
-        statement += ppl_dict[rookie]['birth_day'] + ", "
-        statement += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "
-        statement += "'" + ppl_dict[rookie]['name_first'] + "', "
-        if "'" not in ppl_dict[rookie]['name_last']:
-            statement += "'" + ppl_dict[rookie]['name_last'] + "', "
-        else:
-            last = ppl_dict[rookie]['name_last']
-            apos_at = last.find("'")
-            surname_hack = last[:apos_at] + "'" + last[apos_at:]
-            statement += "'" + surname_hack + "', "
-        statement += "'" + ppl_dict[rookie]['name_given'] + "', "
-        statement += "NULL, NULL, NULL, NULL, "
-        statement += "'" + ppl_dict[rookie]['mlb_played_first'] + "-01-01 00:00:00', "
-        statement += "'" + ppl_dict[rookie]['mlb_played_last'] + "-12-31 00:00:00', "
-        statement += "'" + ppl_dict[rookie]['key_retro'] + "', "
-        statement += "'" + ppl_dict[rookie]['key_bbref'] + "')"
-        # print statement
-        cursor.execute(statement)
-    mydb.commit()
-    cursor.close()
-    return
-
-
-def get_carrots(rookie_id):
-    """Test function to find right carrot."""
-    url_start = "http://www.baseball-reference.com/players/"
-    url = url_start + rookie_id[0] + "/" + rookie_id + ".shtml"
-    page = urllib2.urlopen(url).read()
-    soup = BeautifulSoup(page, 'html.parser')
-    carrots = soup.find(id="info_box")
-    carrots = carrots.find_all('p')
-    carrot_strs = [c.encode('utf-8').strip() for c in carrots]
-    right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
-    print right_one
-    return carrots
-
-
 def rookie_deets(rookie_id):
     """Make UPDATE string for rookie update."""
     """Return update_string and data list"""
@@ -794,10 +680,9 @@ def rookie_deets(rookie_id):
     # print carrots[2]
     # carrots = str(carrots[2].get_text())[:-2]  # old line
     if right_one:
-        carrots = carrots[right_one[-1]].get_text()[:-2]  # -2 strips off trailing \n
+        carrots = carrots[right_one[-1]].get_text()[:-2]  # -2 strips off \n
         carrots = carrots.replace("\n", ",")
         carrots = carrots.split(',')
-        # ['Position: Pitcher', 'Bats: Right', ' Throws: Right', 'Height: 6\' 2"', ' Weight: 230 lb']
         carrots = [carrot.encode('utf-8').strip() for carrot in carrots]
     else:
         print "something went wrong. Here, have some carrots."
@@ -864,21 +749,6 @@ def rookie_deets(rookie_id):
     return update_string, rook_data
 
 
-# likely don't need this.
-def rookies_to_update_old():
-    """Return list of rookies already inserted in master."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement = "SELECT playerID FROM master WHERE finalGame BETWEEN "
-    statement += "'2015-12-31 00:00:00' AND '2015-12-31 23:59:59'"
-    print statement
-    cursor.execute(statement)
-    rooks = cursor.fetchall()
-    cursor.close()
-    rooks = [rook[0] for rook in rooks]
-    return rooks
-
-
 def update_master(rookie_list):
     """Update master table w/ data from bbref player pages."""
     """Sleep timer makes it easier on bbref but slows things down."""
@@ -895,13 +765,12 @@ def update_master(rookie_list):
 
 
 def reset_master():
-    """Delete entries with bad dates."""
-    """May want to change debut to lastGame"""
+    """Delete new entries."""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     statement = """DELETE FROM master
-                   where debut < '1800-01-01 00:00:00' and
-                   birthYear > 1960"""
+                   where finalGame BETWEEN '2015-12-31 00:00:00' and
+                   '2015-12-31 23:59:59'"""
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
@@ -909,6 +778,7 @@ def reset_master():
 
 def fix_mismatches(stats_dict):
     """Fix mismatches between bbref and lahman ids."""
+    """Rewrite id in stats_dict to match lahman."""
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     statement = '''SELECT playerID, bbrefID
