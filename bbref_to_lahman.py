@@ -19,9 +19,15 @@ Notes:
 
 
 ToDo:
+test new decorator
+:   if good, remove many fix_mismatches
+:   and change sd_orig
+
 check inner f(x) in expanded pitching stats_dict
 :   currently broken - find out why
 get rid of extra print statements
+
+consider making fix_mismatches into a decorator
 
 check fielding for aj pierzynski and rusney castillo - looks fine
 reset_db and test again -- looks good
@@ -30,14 +36,14 @@ improve comments and doc strings
 update readme
 
 
-rework rookie_deets to insert rather than update
+rework rookie_deets to insert rather than update - done
 
-test pitching string maker
+test pitching string maker - done section
 delete 2015 data
 fix columns
 run insert of pitching data
 
-use new p_batting_against csv - make/dict
+use new p_batting_against csv - make/dict- done
 alter p table to include new stats - fip, maybe more from orig
     may need a table reset f(x)
 
@@ -186,6 +192,36 @@ def make_people_dict(people_csv):
         return people_dict
 
 
+def fix_mismatches(stats_dict_maker):
+    """Run make_bbrefid_stats_dict fixing mismatches."""
+    """Change bbrefID to LahmanID if necessary."""
+    # don't know if args/kwargs needed in def
+    def inner(*args, **kwargs):
+        """Run maker."""
+        stats_dict = stats_dict_maker(*args, **kwargs)
+        mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+        cursor = mydb.cursor()
+        statement = '''SELECT playerID, bbrefID
+                   FROM master
+                   WHERE birthYear > %s AND
+                   DATE(finalGame) > "%s-1-1" AND
+                   playerID != bbrefID''' % (str(int(year) - 50),
+                                             str(int(year) - 5))
+        cursor.execute(statement)
+        mismatches = cursor.fetchall()
+
+        for mm in mismatches:
+            if mm[1] in stats_dict.keys():
+                stats_dict[mm[0]] = stats_dict[mm[1]]
+                print stats_dict[mm[0]]['Name']
+                del stats_dict[mm[1]]
+
+        cursor.close()
+        return stats_dict
+    return inner
+
+
+@fix_mismatches
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     """Make dictionary mapping bbrefID (as key) to extracted stats (values)."""
     """multiple teams stats are nested as stints"""
@@ -276,11 +312,11 @@ def setup(expanded=True):
     # add rookies
     fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
-    batting_dict = fix_mismatches(batting_dict)
+    # batting_dict = fix_mismatches(batting_dict)
     fix_csv(arms_csv)
     # old lines, might be useful if not adding expanded data
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
-    pitching_dict = fix_mismatches(pitching_dict)
+    # pitching_dict = fix_mismatches(pitching_dict)
     # a, pitching_dict, c = expand_p_test()
     if expanded is True:
         pitching_dict = expand_pitch_stats(pitching_dict)
@@ -382,7 +418,7 @@ def ins_fielding():
         soup = extract_page(html_path)
         pos_data = get_ids(soup)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
-        pos_dict = fix_mismatches(pos_dict)
+        # pos_dict = fix_mismatches(pos_dict)
         print 'inserting into ' + "fielding " + pos + " ..."
         mydb = pymysql.connect('localhost', 'root', '', lahmandb)
         cursor = mydb.cursor()
@@ -526,9 +562,13 @@ def expand_pitch_stats(pitching_dict):
     fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
-    sd = fix_mismatches(sd)
+    # sd = fix_mismatches(sd)
+    # sd_orig = fix_mismatches(pitching_dict)
     sd_orig = pitching_dict
+
     # make sure the two pages match up
+    print len(sd.keys())
+    print len(sd_orig.keys())
     assert sd.keys() == sd_orig.keys()
 
     def change_key_names(stint):
@@ -770,30 +810,6 @@ def reset_master():
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
-
-
-def fix_mismatches(stats_dict):
-    """Fix mismatches between bbref and lahman ids."""
-    """Rewrite id in stats_dict to match lahman."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
-    cursor = mydb.cursor()
-    statement = '''SELECT playerID, bbrefID
-                   FROM master
-                   WHERE birthYear > %s AND
-                   DATE(finalGame) > "%s-1-1" AND
-                   playerID != bbrefID''' % (str(int(year) - 50),
-                                             str(int(year) - 5))
-    cursor.execute(statement)
-    mismatches = cursor.fetchall()
-
-    for mm in mismatches:
-        if mm[1] in stats_dict.keys():
-            stats_dict[mm[0]] = stats_dict[mm[1]]
-            print stats_dict[mm[0]]['Name']
-            del stats_dict[mm[1]]
-
-    cursor.close()
-    return stats_dict
 
 
 def fix_csv(csv_file):
