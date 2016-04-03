@@ -563,34 +563,18 @@ def expand_pitch_stats_fork(pitching_dict):
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
     soup = extract_page(arms_extra_html)
-    # soup_orig = extract_page(arms_html)
     ids = get_ids(soup)
-    # ids_orig = get_ids(soup_orig)
     fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
-    # sd = fix_mismatches(sd)
-    # sd_orig = fix_mismatches(pitching_dict)
     sd_orig = pitching_dict
 
     # make sure the two pages match up
-    print len(sd.keys())
-    print len(sd_orig.keys())
     assert sd.keys() == sd_orig.keys()
-
-    def change_key_names(stint):
-        """Change keys to match lahman columns."""
-        stint['BAOpp'] = stint.pop('BA')
-        stint['GIDP'] = stint.pop('GDP')
-        stint['BFP'] = stint.pop('BF')
-        stint['ERAplus'] = stint.pop('ERA+')
-        stint['SOperW'] = stint.pop('SO/W')
 
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
             sd[p_id].update(sd_orig[p_id])
-            # change_key_names(sd[p_id])
-
             sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
             sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
             sd[p_id]['BFP'] = sd[p_id].pop('BF')
@@ -599,14 +583,11 @@ def expand_pitch_stats(pitching_dict):
         else:  # more than one stint
             for stint in sd[p_id].keys():
                 sd[p_id][stint].update(sd_orig[p_id][stint])
-                # change_key_names[stint](sd[p_id])
-
                 sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
                 sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
                 sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
                 sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
                 sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
-
     return sd
 
 
