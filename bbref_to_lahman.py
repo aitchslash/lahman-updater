@@ -31,38 +31,22 @@ check inner f(x) in expanded pitching stats_dict
 :   currently broken - find out why
 get rid of extra print statements
 
-consider making fix_mismatches into a decorator
-
-check fielding for aj pierzynski and rusney castillo - looks fine
-reset_db and test again -- looks good
 delete old code and print statements
 improve comments and doc strings
 update readme
 
-
-rework rookie_deets to insert rather than update - done
-
-test pitching string maker - done section
-delete 2015 data
-fix columns
-run insert of pitching data
-
-use new p_batting_against csv - make/dict- done
-alter p table to include new stats - fip, maybe more from orig
-    may need a table reset f(x)
-
-once working remove old code
+extra code in rookie_deets from when it updated
 
 examine batting stats on bbref to maybe get more
-
-consider getting WAR
+:   consider getting WAR
 
 look into automating getting csv/source files via spynner
 
 update pitching table, take get_headers out of loop
 
 roll inserts into one f(x) - main
-create field_length dictionary with header
+create field_length dictionary with header -- done
+:   but could be improved
 
 consider reworking insert_batter & insert_pitcher
 :   maybe use a decorator for the statement_start/end?
@@ -557,6 +541,25 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     return insert_strings
 
 
+def expand_pitch_stats_fork(pitching_dict):
+    """Add expanded stats to pitching_dict."""
+    soup = extract_page(arms_extra_html)
+    ids = get_ids(soup)
+    # csv has len==30, same as default
+    new_sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
+    assert new_sd.keys() == pitching_dict.keys()
+    # unpack stints
+    stints = []
+    for p_id in new_sd.keys():
+        if len(new_sd[p_id]) > 10:  # only one stint
+            stints.append(new_sd[p_id])
+        else:  # more than one stint
+            for stint in new_sd[p_id].keys():
+                stints.append(new_sd[p_id][stint])
+        for stint in stints:
+            pitching_dict[p_id]
+
+
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
     soup = extract_page(arms_extra_html)
@@ -586,24 +589,24 @@ def expand_pitch_stats(pitching_dict):
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
             sd[p_id].update(sd_orig[p_id])
-            change_key_names(sd[p_id])
-            '''
+            # change_key_names(sd[p_id])
+
             sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
             sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
             sd[p_id]['BFP'] = sd[p_id].pop('BF')
             sd[p_id]['ERAplus'] = sd[p_id].pop('ERA+')
-            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')'''
+            sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
         else:  # more than one stint
             for stint in sd[p_id].keys():
                 sd[p_id][stint].update(sd_orig[p_id][stint])
-                change_key_names[stint](sd[p_id])
-                '''
+                # change_key_names[stint](sd[p_id])
+
                 sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
                 sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
                 sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
                 sd[p_id][stint]['ERAplus'] = sd[p_id][stint].pop('ERA+')
                 sd[p_id][stint]['SOperW'] = sd[p_id][stint].pop('SO/W')
-                '''
+
     return sd
 
 
