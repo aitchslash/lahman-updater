@@ -23,6 +23,9 @@ test new decorator
 :   if good, remove many fix_mismatches
 :   and change sd_orig
 
+maybe make fix_csv into a decorator
+:   might slow things down but would save code
+
 check inner f(x) in expanded pitching stats_dict
 :   currently broken - find out why
 get rid of extra print statements
