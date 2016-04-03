@@ -26,10 +26,11 @@ test new decorator
 
 maybe make fix_csv into a decorator -- done -- test
 :   might slow things down but would save code
+:   if test goes well remove old lines
 
-check inner f(x) in expanded pitching stats_dict
-:   currently broken - find out why
-get rid of extra print statements
+make globals for db access (host, user, pw, db)
+
+move testers and resets to utils
 
 delete old code and print statements
 improve comments and doc strings
