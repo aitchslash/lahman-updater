@@ -24,7 +24,7 @@ test new decorator
 :   if good, remove many fix_mismatches
 :   and change sd_orig
 
-maybe make fix_csv into a decorator
+maybe make fix_csv into a decorator -- done -- test
 :   might slow things down but would save code
 
 check inner f(x) in expanded pitching stats_dict
@@ -146,6 +146,7 @@ def get_ids(soup):
         if name[-1].isalnum() is False:
             name = name[:-1]
         if name.find(' ') == -1:  # error checking
+            print "Missing name for: ",
             pprint.pprint(name)
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
@@ -153,6 +154,23 @@ def get_ids(soup):
     return name_bbref_dict
 
 
+def fix_csv(func):
+    """Decorate funcs using csv."""
+    def inner(*args, **kwargs):
+        """Clear csv of blank line(s)."""
+        f = open(args[0], "r+")
+        lines = f.readlines()
+        f.seek(0)
+        for line in lines:
+            if line != "\n":
+                f.write(line)
+        f.truncate()
+        f.close()
+        return func(*args, **kwargs)
+    return inner
+
+
+@fix_csv
 def make_people_dict(people_csv):
     """Return dictionary mapping bbref to master table data."""
     """Data from chadwick bureau."""
@@ -209,6 +227,7 @@ def fix_mismatches(stats_dict_maker):
     return inner
 
 
+@fix_csv
 @fix_mismatches
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     """Make dictionary mapping bbrefID (as key) to extracted stats (values)."""
@@ -298,10 +317,10 @@ def setup(expanded=True):
     p_ids = get_ids(p_soup)
     # ids.update(p_ids)
     # add rookies
-    fix_csv(bats_csv)
+    # fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     # batting_dict = fix_mismatches(batting_dict)
-    fix_csv(arms_csv)
+    # fix_csv(arms_csv)
     # old lines, might be useful if not adding expanded data
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # pitching_dict = fix_mismatches(pitching_dict)
@@ -402,7 +421,7 @@ def ins_fielding():
 
     for pos in positions:
         csv_path, html_path = make_paths(pos)
-        fix_csv(csv_path)
+        # fix_csv(csv_path)
         soup = extract_page(html_path)
         pos_data = get_ids(soup)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
@@ -564,7 +583,7 @@ def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
     soup = extract_page(arms_extra_html)
     ids = get_ids(soup)
-    fix_csv(arms_extra_csv)
+    # fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     sd_orig = pitching_dict
@@ -800,7 +819,7 @@ def reset_master():
     cursor.close()
 
 
-def fix_csv(csv_file):
+def fix_csv_old(csv_file):
     """Remove blank line(s) from csv."""
     f = open(csv_file, "r+")
     lines = f.readlines()
