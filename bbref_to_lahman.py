@@ -5,16 +5,17 @@ In order to extract the bbref ID's a copy of the html will
 have to be scraped as well.
 
 Notes:
-1) Adding mlb advanced media ID as default.  Using VARCHAR (int instead?)
+1) Adding mlb advanced media ID as default.  Using INT(11)
 2) Ensure that "Hide non-qualifiers for rate stats" is the same on all docs
 3) Stint is not assured to be correct. Relies on bbref order
-4) BAopp for pitchers lacks SH, S and GIDP so is inexact
-5) SH, S, and GIDP missing from pitching
-6) no recorded out leads to an infinite ERA - using 99.99
-7) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
+4) no recorded out leads to an infinite ERA - using 99.99
+5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
-8) Setting new players last game to year-12-31 so they're easy to find
-9) Rookie insert take a while on first run
+6) Setting new players last game to year-12-31 so they're easy to find
+7) Rookie insert take a while on first run
+8) Rookie birthState truncated to 2 chars
+:   may want to expand column to accept more
+:   or find converter
 
 
 
