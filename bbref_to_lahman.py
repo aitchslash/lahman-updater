@@ -38,10 +38,14 @@ update readme
 
 extra code in rookie_deets from when it updated
 
+get old data and update w/ expanded stats
+
 examine batting stats on bbref to maybe get more
 :   consider getting WAR
 
 look into automating getting csv/source files via spynner
+
+automate file name generation and remove globals
 
 update pitching table, take get_headers out of loop
 
