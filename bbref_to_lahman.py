@@ -78,14 +78,14 @@ import pprint  # nb, just for test prints
 
 lahmandb = "lahmandb"
 
-bats_csv = 'bbref_2015_batting.csv'
-arms_csv = 'bbref_2015_pitching.csv'
-arms_extra_csv = 'p_batting_against.csv'
-bats_html = 'bbref_html.shtml'
-arms_html = 'bbref_arms_html.shtml'
-arms_extra_html = 'p_batting_against.shtml'
+bats_csv = 'data2015/bbref_2015_batting.csv'
+arms_csv = 'data2015/bbref_2015_pitching.csv'
+arms_extra_csv = 'data2015/p_batting_against.csv'
+bats_html = 'data2015/bbref_html.shtml'
+arms_html = 'data2015/bbref_arms_html.shtml'
+arms_extra_html = 'data2015/p_batting_against.shtml'
 year = '2015'
-people_csv = 'people.csv'
+people_csv = 'data2015/people.csv'
 
 # could generate field_length dict from len(header)
 field_length = {'batting': 30,
