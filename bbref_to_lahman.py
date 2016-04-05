@@ -212,7 +212,6 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     with open(bbref_csv, "rb") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
-        # print (header)  # nb, just to appease pep-8
         if table == 'P':
             # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
@@ -238,8 +237,8 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                                                 'stint2': second_stint}
                     # then stints have been used, add this one
                     else:
-                        stint_num = "stint" + str(len(stats_dict[bbref_id]) + 1)
-                        stats_dict[bbref_id].update({stint_num: row})
+                        st_num = "stint" + str(len(stats_dict[bbref_id]) + 1)
+                        stats_dict[bbref_id].update({st_num: row})
 
                 except:
                     if row['Name'] != 'Name':
