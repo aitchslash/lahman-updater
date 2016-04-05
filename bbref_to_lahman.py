@@ -30,7 +30,7 @@ update readme
 
 extra code in rookie_deets from when it updated
 
-get old data and update w/ expanded stats
+get old data and update w/ expanded stats (e.g. last 20yrs)
 
 examine batting stats on bbref to maybe get more
 :   consider getting WAR
@@ -46,11 +46,10 @@ roll inserts into one f(x) - main
 consider reworking insert_batter & insert_pitcher
 :   maybe use a decorator for the statement_start/end?
 :   first lines in ss the same
-:   if stint['Tm'] = 'TOT', now likely unneccessary
+
 open lahman15 release
 :   check inf(inity extracted) pitching
-:   check pitching for missing stats (not in mine or bbref) - SH, S, GIDP
-    check teamID's for Chicago
+:   check teamID's for Chicago
 """
 
 import csv
