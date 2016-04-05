@@ -43,9 +43,6 @@ update pitching table, take get_headers out of loop
 
 roll inserts into one f(x) - main
 
-create field_length dictionary with header -- done
-:   but could be improved
-
 consider reworking insert_batter & insert_pitcher
 :   maybe use a decorator for the statement_start/end?
 :   first lines in ss the same
@@ -197,6 +194,7 @@ def fix_mismatches(stats_dict_maker):
         for mm in mismatches:
             if mm[1] in stats_dict.keys():
                 stats_dict[mm[0]] = stats_dict[mm[1]]
+                print "bbrefID changed to lahman: ",
                 print stats_dict[mm[0]]['Name']
                 del stats_dict[mm[1]]
 
