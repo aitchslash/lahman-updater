@@ -61,10 +61,6 @@ open lahman15 release
 :   check inf(inity extracted) pitching
 :   check pitching for missing stats (not in mine or bbref) - SH, S, GIDP
     check teamID's for Chicago
-
-check if extract_page and get_ids are ever used seperately
-:   roll into one if not
-
 """
 
 import csv
@@ -132,15 +128,12 @@ def add_mlbamid_master():
     cursor.close()
 
 
-def extract_page(page):
+def get_ids(page):
     """Turn html page into a BeautifulSoup."""
+    """Return a dictionary mapping {name:bbref_id}."""
     with open(page, "r") as html:
         soup = BeautifulSoup(html, 'html.parser')
-    return soup
 
-
-def get_ids(soup):
-    """Return a dictionary mapping {name:bbref_id}."""
     name_bbref_dict = {}
     tags = soup.select('a[href^=/players/]')
     for tag in tags:
@@ -316,10 +309,8 @@ def make_team_dict():
 
 def setup(expanded=True):
     """Run one-time queries and audit data."""
-    b_soup = extract_page(bats_html)
-    p_soup = extract_page(arms_html)
-    ids = get_ids(b_soup)
-    p_ids = get_ids(p_soup)
+    ids = get_ids(bats_html)
+    p_ids = get_ids(arms_html)
     # ids.update(p_ids)
     # add rookies
     # fix_csv(bats_csv)
@@ -427,8 +418,7 @@ def ins_fielding():
     for pos in positions:
         csv_path, html_path = make_paths(pos)
         # fix_csv(csv_path)
-        soup = extract_page(html_path)
-        pos_data = get_ids(soup)
+        pos_data = get_ids(html_path)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
         # pos_dict = fix_mismatches(pos_dict)
         print 'inserting into ' + "fielding " + pos + " ..."
@@ -567,8 +557,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
 
 def expand_pitch_stats_fork(pitching_dict):
     """Add expanded stats to pitching_dict."""
-    soup = extract_page(arms_extra_html)
-    ids = get_ids(soup)
+    ids = get_ids(arms_extra_html)
     # csv has len==30, same as default
     new_sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     assert new_sd.keys() == pitching_dict.keys()
@@ -586,8 +575,7 @@ def expand_pitch_stats_fork(pitching_dict):
 
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
-    soup = extract_page(arms_extra_html)
-    ids = get_ids(soup)
+    ids = get_ids(arms_extra_html)
     # fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
