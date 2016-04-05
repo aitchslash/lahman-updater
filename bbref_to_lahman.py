@@ -837,7 +837,7 @@ def fix_csv_old(csv_file):
 
 
 def make_paths(position):
-    """Return paths for csv and shtml files."""
+    """Return fielding paths for csv and shtml files."""
     cwd = os.getcwd()
     csv_path = os.path.join(cwd, "fielding_" + year,
                             "bbref_" + position + "_fielding.csv")
