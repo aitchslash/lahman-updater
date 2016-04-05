@@ -61,7 +61,11 @@ from time import strptime
 from time import sleep
 import pprint  # nb, just for test prints
 
+# database globals, put your details here
 lahmandb = "lahmandb"
+username = "root"
+password = ''
+host = "localhost" 
 
 bats_csv = 'data/data2015/bbref_2015_batting.csv'
 arms_csv = 'data/data2015/bbref_2015_pitching.csv'
@@ -75,7 +79,7 @@ people_csv = 'data/data2015/people.csv'
 
 def add_pitching_columns():
     """Run once.  Add extra stat columns to pitching."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = """ALTER TABLE pitching
                    ADD COLUMN ROE TINYINT(2) DEFAULT NULL,
@@ -95,7 +99,7 @@ def add_pitching_columns():
 
 def add_mlbamid_master():
     """Add column for mlb adv media ID to master."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = """ALTER TABLE master
                    ADD COLUMN mlbamID INT(11) DEFAULT NULL"""
@@ -177,7 +181,7 @@ def fix_mismatches(stats_dict_maker):
     def inner(*args, **kwargs):
         """Run maker."""
         stats_dict = stats_dict_maker(*args, **kwargs)
-        mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+        mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         statement = '''SELECT playerID, bbrefID
                    FROM master
@@ -250,7 +254,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
 
 def get_columns(table):
     """Get column names from Lahman table (pitching/batting)."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = "SHOW columns FROM %s" % (table)
     print statement  # nb, test line
@@ -263,7 +267,7 @@ def get_columns(table):
 
 def make_team_dict():
     """Return dictionary mapping team_ids, lahman to bbref."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = '''SELECT teamID, teamIDBR
                    FROM teams
@@ -312,7 +316,7 @@ def ins_table_data(table_data, cols_array, table='batting'):
         insert_player = insert_pitcher
     print 'setup run, opening db...'
     print 'inserting into ' + table + "..."
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for key in table_data.keys():
         statements = insert_player(key, table_data, team_dict, cols_array)
@@ -383,7 +387,7 @@ def ins_fielding():
         pos_data = get_ids(html_path)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
         print 'inserting into ' + "fielding " + pos + " ..."
-        mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+        mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         for key in pos_dict.keys():
             statements = insert_fielder(key, pos_dict, team_dict, cols, pos)
@@ -543,7 +547,7 @@ def expand_pitch_stats(pitching_dict):
 def reset_db(table='batting', year=year):
     """Clear out all entries w/ yearID = year."""
     """Set table='pitching' to reset that table"""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = "DELETE FROM %s WHERE yearID = %s" % (table, year)
     cursor.execute(statement)
@@ -554,7 +558,7 @@ def reset_db(table='batting', year=year):
 def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
     """Find ids in id_set NOT IN master."""
     rookie_list = []
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for id_ in id_set:
         statement = "select nameFirst from master where playerid='%s'" % (id_)
@@ -585,7 +589,7 @@ def populate_master(rookie_set, expanded=True):
     for field in missing:
         cols.append(cols.pop(cols.index(field)))
 
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement_start = "INSERT INTO master ("
     for col in cols:
@@ -629,7 +633,7 @@ def populate_master(rookie_set, expanded=True):
 
 def rook_ins_test(ins_statement):
     """Test rookie insert."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     cursor.execute(ins_statement)
     mydb.commit()
@@ -720,7 +724,7 @@ def rookie_deets(rookie_id):
 def update_master(rookie_list):
     """Update master table w/ data from bbref player pages."""
     """Sleep timer makes it easier on bbref but slows things down."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for rookie in rookie_list:
         statement, rook_data = rookie_deets(rookie)
@@ -732,7 +736,7 @@ def update_master(rookie_list):
 
 def reset_master():
     """Delete new entries."""
-    mydb = pymysql.connect('localhost', 'root', '', lahmandb)
+    mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = """DELETE FROM master
                    where finalGame BETWEEN '2015-12-31 00:00:00' and
