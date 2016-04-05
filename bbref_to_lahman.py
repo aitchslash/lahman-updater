@@ -409,8 +409,6 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
         stints.append(stats)
     else:  # unpack stints into the array
         for stint_key in stats.keys():
-            # print stats
-            # print key
             stats[stint_key]['stint'] = str(stint_key[-1])
             stints.append(stats[stint_key])
 
@@ -424,7 +422,6 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
             statement_start += field + ", "
         statement_start = statement_start[:-2] + ") VALUES ("
         ss = statement_start
-        # print key  # test print
         ss += "'" + key + "', "
         ss += year + ", "
         ss += str(stint['stint']) + ", "  # stint + ", "
@@ -456,8 +453,6 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
     stints = []
-    # if len(stats) == 35:  # only one stint # old line
-    # if len(stats) == 52:  # only one stint
     if len(stats) > 10:
         stats['stint'] = 1
         stints.append(stats)
@@ -468,7 +463,6 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
 
     # move IPouts to end of array
     fields_array.append(fields_array.pop(fields_array.index('IPouts')))
-    # print field
 
     insert_strings = []
     empty_warning = set()  # nb, likely served its purpose
@@ -478,21 +472,12 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
             statement_start += field + ", "
         statement_start = statement_start[:-2] + ") VALUES ("
         ss = statement_start
-        # print key  # test print
         ss += "'" + key + "', "
         ss += year + ", "
         ss += str(stint['stint']) + ", "
         ss += "'" + team_dict[stint["Tm"]] + "', "
         ss += "'" + stint['Lg'] + "', "
-        # update = ['BAopp', 'GIDP', 'SF', 'SH', 'OBP',
-        # 'OPS', 'ROE', 'SLG', 'BAbip']
-        """
-        stat_keys = ['W', 'L', 'G', 'GS', 'CG', 'SHO', 'SV', 'H',
-                     'ER', 'HR', 'BB', 'SO', 'ERA', 'IBB', 'WP', 'HBP',
-                     'BK', 'BFP', 'GF', "R",
-                     'BAopp', 'PA', 'WHIP', 'SOperW', 'FIP', 'ERAplus', 'ROE',
-                     'BAbip', 'SLG', 'GIDP', 'SF', 'SH', 'OBP', 'OPS', 'SLG']
-        """
+
         stat_keys = fields_array[5:-1]
         for sk in stat_keys:
             if stint[sk]:
@@ -536,7 +521,6 @@ def expand_pitch_stats_fork(pitching_dict):
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
     ids = get_ids(arms_extra_html)
-    # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
     assert sd.keys() == pitching_dict.keys()
@@ -669,8 +653,6 @@ def rookie_deets(rookie_id):
     carrots = carrots.find_all('p')
     carrot_strs = [c.encode('utf-8').strip() for c in carrots]
     right_one = [n for n, c in enumerate(carrot_strs) if c.find("Bats") != -1]
-    # print rookie_id
-    # print carrots[2]
     # carrots = str(carrots[2].get_text())[:-2]  # old line
     if right_one:
         carrots = carrots[right_one[-1]].get_text()[:-2]  # -2 strips off \n
@@ -696,8 +678,6 @@ def rookie_deets(rookie_id):
         carrots[3] = carrots[3][dot + 1:]
 
     update_string += "throws='" + throws + "', "
-    # print rookie_id,
-    # print carrots
     feet = int(carrots[bi + 2][carrots[bi + 2].find(" ") + 1]) * 12
     inches = int(carrots[bi + 2][-2])
     height = str(feet + inches)
@@ -733,7 +713,6 @@ def rookie_deets(rookie_id):
     debut_time = "'" + deb_year + "-" + deb_mon + "-" + deb_day + " 00:00:00'"
     update_string += "debut=" + debut_time + " "
     update_string += "WHERE playerID='" + rookie_id + "'"
-    # pprint.pprint(update_string)
     rook_data = {'bats': bats, 'throws': throws, 'height': height,
                  'weight': weight, 'birthYear': year, 'birthMonth': month,
                  'birthDay': day, 'birthCity': birth_city,
@@ -745,12 +724,10 @@ def rookie_deets(rookie_id):
 def update_master(rookie_list):
     """Update master table w/ data from bbref player pages."""
     """Sleep timer makes it easier on bbref but slows things down."""
-    # rookie_list = rookies_to_update()
     mydb = pymysql.connect('localhost', 'root', '', lahmandb)
     cursor = mydb.cursor()
     for rookie in rookie_list:
         statement, rook_data = rookie_deets(rookie)
-        # print statement
         cursor.execute(statement)
         sleep(0.5)
     mydb.commit()
