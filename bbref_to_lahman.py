@@ -78,14 +78,14 @@ import pprint  # nb, just for test prints
 
 lahmandb = "lahmandb"
 
-bats_csv = 'data2015/bbref_2015_batting.csv'
-arms_csv = 'data2015/bbref_2015_pitching.csv'
-arms_extra_csv = 'data2015/p_batting_against.csv'
-bats_html = 'data2015/bbref_html.shtml'
-arms_html = 'data2015/bbref_arms_html.shtml'
-arms_extra_html = 'data2015/p_batting_against.shtml'
+bats_csv = 'data/data2015/bbref_2015_batting.csv'
+arms_csv = 'data/data2015/bbref_2015_pitching.csv'
+arms_extra_csv = 'data/data2015/p_batting_against.csv'
+bats_html = 'data/data2015/bbref_html.shtml'
+arms_html = 'data/data2015/bbref_arms_html.shtml'
+arms_extra_html = 'data/data2015/p_batting_against.shtml'
 year = '2015'
-people_csv = 'data2015/people.csv'
+people_csv = 'data/data2015/people.csv'
 
 # could generate field_length dict from len(header)
 field_length = {'batting': 30,
@@ -836,11 +836,11 @@ def fix_csv_old(csv_file):
     f.close()
 
 
-def make_paths(position):
+def make_paths(position, year=year):
     """Return fielding paths for csv and shtml files."""
     cwd = os.getcwd()
-    csv_path = os.path.join(cwd, "fielding_" + year,
+    csv_path = os.path.join(cwd, "data" + year, "fielding_" + year,
                             "bbref_" + position + "_fielding.csv")
-    shtml_path = os.path.join(cwd, "fielding_" + year,
+    shtml_path = os.path.join(cwd, "data" + year, "fielding_" + year,
                               "bbref_" + position + "_fielding.shtml")
     return csv_path, shtml_path
