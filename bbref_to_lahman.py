@@ -20,14 +20,6 @@ Notes:
 
 
 ToDo:
-test new decorator
-:   if good, remove many fix_mismatches
-:   and change sd_orig
-
-maybe make fix_csv into a decorator -- done -- test
-:   might slow things down but would save code
-:   if test goes well remove old lines
-
 make globals for db access (host, user, pw, db)
 
 move testers and resets to utils
@@ -311,15 +303,9 @@ def setup(expanded=True):
     """Run one-time queries and audit data."""
     ids = get_ids(bats_html)
     p_ids = get_ids(arms_html)
-    # ids.update(p_ids)
-    # add rookies
-    # fix_csv(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
-    # batting_dict = fix_mismatches(batting_dict)
-    # fix_csv(arms_csv)
     # old lines, might be useful if not adding expanded data
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
-    # pitching_dict = fix_mismatches(pitching_dict)
     # a, pitching_dict, c = expand_p_test()
     if expanded is True:
         pitching_dict = expand_pitch_stats(pitching_dict)
@@ -417,10 +403,8 @@ def ins_fielding():
 
     for pos in positions:
         csv_path, html_path = make_paths(pos)
-        # fix_csv(csv_path)
         pos_data = get_ids(html_path)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
-        # pos_dict = fix_mismatches(pos_dict)
         print 'inserting into ' + "fielding " + pos + " ..."
         mydb = pymysql.connect('localhost', 'root', '', lahmandb)
         cursor = mydb.cursor()
@@ -576,17 +560,14 @@ def expand_pitch_stats_fork(pitching_dict):
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
     ids = get_ids(arms_extra_html)
-    # fix_csv(arms_extra_csv)
     # pitching extra has len=30, same as default
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
-    sd_orig = pitching_dict
-
     # make sure the two pages match up
-    assert sd.keys() == sd_orig.keys()
+    assert sd.keys() == pitching_dict.keys()
 
     for p_id in sd.keys():
         if len(sd[p_id].keys()) > 10:  # only one stint
-            sd[p_id].update(sd_orig[p_id])
+            sd[p_id].update(pitching_dict[p_id])
             sd[p_id]['BAOpp'] = sd[p_id].pop('BA')
             sd[p_id]['GIDP'] = sd[p_id].pop('GDP')
             sd[p_id]['BFP'] = sd[p_id].pop('BF')
@@ -594,7 +575,7 @@ def expand_pitch_stats(pitching_dict):
             sd[p_id]['SOperW'] = sd[p_id].pop('SO/W')
         else:  # more than one stint
             for stint in sd[p_id].keys():
-                sd[p_id][stint].update(sd_orig[p_id][stint])
+                sd[p_id][stint].update(pitching_dict[p_id][stint])
                 sd[p_id][stint]['BAOpp'] = sd[p_id][stint].pop('BA')
                 sd[p_id][stint]['GIDP'] = sd[p_id][stint].pop('GDP')
                 sd[p_id][stint]['BFP'] = sd[p_id][stint].pop('BF')
@@ -810,18 +791,6 @@ def reset_master():
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
-
-
-def fix_csv_old(csv_file):
-    """Remove blank line(s) from csv."""
-    f = open(csv_file, "r+")
-    lines = f.readlines()
-    f.seek(0)
-    for line in lines:
-        if line != "\n":
-            f.write(line)
-    f.truncate()
-    f.close()
 
 
 def make_paths(position, year=year):
