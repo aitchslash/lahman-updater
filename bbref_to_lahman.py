@@ -152,25 +152,23 @@ def make_people_dict(people_csv):
     people_dict = {}
     with open(people_csv, 'rb') as f:
         reader = csv.DictReader(f)
-        header = reader.fieldnames
+        hed = reader.fieldnames
 
         # rename keys to match lahman
-        for i in range(0, len(header)):
-            if header[i].find('key_') == 0:
-                header[i] = header[i][4:] + "ID"
-        for i in range(0, len(header)):
-            j = header[i].find("_")
+        for i in range(0, len(hed)):
+            if hed[i].find('key_') == 0:
+                hed[i] = hed[i][4:] + "ID"
+        for i in range(0, len(hed)):
+            j = hed[i].find("_")
             if j != -1:
-                header[i] = header[i][:j] + header[i][j + 1].upper() + header[i][j + 2:]
+                hed[i] = hed[i][:j] + hed[i][j + 1].upper() + hed[i][j + 2:]
 
-        print header
         for row in reader:
-            # people_dict
             # limit dictionary to those youger than 50
             if row['birthYear'] and int(row['birthYear']) > int(year) - 50:
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
-        return people_dict
+    return people_dict
 
 
 def fix_mismatches(stats_dict_maker):
