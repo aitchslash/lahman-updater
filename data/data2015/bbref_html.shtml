@@ -35,7 +35,6 @@ try{(new g(100,"r","QSI_S_SI_3CWPKrI10k7ANBX","//zncvfm2dltswdzell-farris.sitein
  <a class="sr_link" href="//www.sports-reference.com/blog/">S-R Blog</a> &#183;
  <a class="sr_link" href="//www.sports-reference.com/feedback/">Question or Comment?</a>
 </div> 
-
 <div id=site_header>
 <div id=sr_header>
 <div id=sr_header_right_float class="float_right clear_right">
@@ -51,10 +50,8 @@ try{(new g(100,"r","QSI_S_SI_3CWPKrI10k7ANBX","//zncvfm2dltswdzell-farris.sitein
 <span>&nbsp;</span>
 </div>
 </div>
-
 <div class="clearfix float_right clear_both">
 <div class="padding_left_half float_right"><a rel="nofollow" class="sprite-twitter" title="Follow us on Twitter" href="//twitter.com/baseball_ref"></a><a rel="nofollow" class="sprite-facebook" title="Become a Fan on FaceBook" href="//www.facebook.com/Baseball.Reference"></a><a rel="nofollow" class="sprite-youtube" title="Sports Reference Instructional Videos" href="//www.youtube.com/user/sportsreference"></a></div>
-
 <div class=float_right>
 <form  id="f" name="f" action="/search/search.fcgi">
  <input x-webkit-speech type="search" placeholder="click 'Tips' for shortcuts" id="search" name="search" class="search m_long typeahead"> 
@@ -64,14 +61,11 @@ try{(new g(100,"r","QSI_S_SI_3CWPKrI10k7ANBX","//zncvfm2dltswdzell-farris.sitein
 </form>
 </div>
 </div>
-
 </div> 
 </div> 
-
 <div class="float_left">
 <div class="clear_left float_left padding_top padding_bottom_half"><a href="/"><img src="//d2ft4b0ve1aur1.cloudfront.net/images-904/Baseball-Ref.png" width=394 height=73 border="0" alt="Baseball-Reference.com"></a></div>
 </div>
-
 </div> 
 <div id=quick_index><ul class="hovermenu_ajax navbar"><li><a href="/play-index/">play index</a><ul class=li_margin id="header_playindex"></ul></li><li><a href="/players/">players</a><ul class=li_margin id="header_players"></ul></li><li><a href="/teams/">teams</a><ul id=header_teams></ul></li><li class=active><a href="/leagues/">seasons</a><ul class=li_margin id="header_leagues"></ul></li><li><a href="/managers/">managers</a><ul class=li_margin id="header_managers"></ul></li><li><a href="/leaders/">leaders</a><ul class=li_margin id="header_leaders"></ul></li><li><a href="/awards/">awards</a><ul class=li_margin id="header_awards"></ul></li><li><a href="/postseason/">postseason</a><ul class=li_margin id="header_postseason"></ul></li><li><a href="/boxes/">boxes</a><ul class=li_margin id="header_boxes"></ul></li><li><a href="/register/">minors, nlb, japan, &hellip;</a><ul class=li_margin id="header_register"></ul></li><li><a href="/draft/">draft</a><ul class=li_margin id="header_draft"></ul></li><li><a href="">more <span class=arrowsprite_bottom></span></a><ul class=li_margin id="header_more_links"></ul></li><li><a class="no_underline_text padding_top0 padding_bottom_half" href="/random.cgi">&#120701</a><ul class=li_margin id="header_random"></ul></li></ul></div><!-- div#quick_index --><div id=you_are_here><p class=padding_left0><a class=mobile_link href="http://m.bbref.com/m?p=XXleaguesXXMLBXX2015.shtml">Mobile Site</a> <span class=bold_text>You Are Here</span> &gt; <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop=url href="/"><span itemprop=title>BR Home</span></a></span> &gt; <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop=url href="/leagues/"><span itemprop=title>Leagues</span></a></span> &gt; <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop=url href="/leagues/MLB/"><span itemprop=title>MLB History</span></a></span> &gt; <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop=url href="/leagues/MLB/2015.shtml"><span itemprop=title>2015 MLB</a> | <a href="/leagues/AL/2015.shtml">AL</a> | <a href="/leagues/NL/2015.shtml">NL</span></a></span> &gt; <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><b><span itemprop=title>Standard Batting</span></b></span></p></div><!-- div#quick_index --><div class="site_news"><p><span class="bold_text">News:</span> <span class="poptip" tip="You may have noticed a recent addition to our player pages: an italicized stat line for 2016. These are projections for 2016, which were generated using the Marcel the Monkey Forecasting System. The Marcel projection system was originally developed by Tom Tango as the \"minimum level of competence that you should expect from any forecaster.\" [&#8230;]">s-r blog:<a onClick="try { pageTracker._trackEvent('blog','click','area-yah'); } catch (err) {};"
  href="http://www.sports-reference.com/blog/2015/10/2016-player-projections-added-to-baseball-reference/">2016 Player Projections Added to Baseball Reference</a> <span class="small_text"></span></span></p></div>
@@ -80,7 +74,6 @@ try{(new g(100,"r","QSI_S_SI_3CWPKrI10k7ANBX","//zncvfm2dltswdzell-farris.sitein
 <script type="text/javascript">
 googletag.cmd.push(function() {
 googletag.defineSlot('/20893548/yb/sportsreference/baseballreference', [728,90], 'restofsite_728x90_atf1').addService(googletag.pubads());
-
 googletag.enableServices();
 googletag.pubads().setTargeting('site', ['br']);
 });
@@ -91,8 +84,6 @@ googletag.cmd.push(function() { googletag.display('restofsite_728x90_atf1'); });
 </script>
 </div>
 <!-- /div.#restofsite_728x90_atf1.advert728x90 -->
-
-
 <div id="page_content">
 <div class="freeze_bar sub_index" id="league_index_div">
 <ul class="hovermenu menu">
@@ -182,7 +173,6 @@ googletag.cmd.push(function() { googletag.display('restofsite_728x90_atf1'); });
 <li class=""><a href="/leagues/MLB/2015-team-pitching-staffs.shtml">Team Pitching Staffs</a></li>
   </ul>
 </li>
-
 </ul>
 </div>
 <div class="clear_both page_name">
@@ -194,8 +184,6 @@ googletag.cmd.push(function() { googletag.display('restofsite_728x90_atf1'); });
 &nbsp;/&nbsp;<a href="/leagues/NL/2015-standard-batting.shtml">2015 NL</a>
 &nbsp;Standard Batting</div>
 <div id="all_stats">
-
-
 <div class="div_batting_type stw" id="all_teams_standard_batting">
 <div class="table_heading">
 <h2>Team &amp; League Standard Batting</h2><div class="table_heading_text"></div></div>
@@ -1265,9 +1253,6 @@ googletag.cmd.push(function() { googletag.display('restofsite_728x90_atf1'); });
 </table>
 </div><!-- div.table_container#div_xxxx -->
 </div>
-
-
-
 <div class="div_batting_type stw" id="all_players_standard_batting">
 <div class="table_heading">
 <h2>Player Standard Batting</h2><div class="table_heading_text"><form  class="rate_switch" name=form_sortable id="fs_players_standard_batting">
@@ -55236,7 +55221,6 @@ googletag.cmd.push(function() { googletag.display('restofsite_728x90_atf1'); });
 </table>
 </div><!-- div.table_container#div_xxxx -->
 </div>
-
 </div><br><br><div class="clear_both small_text" id="sr_other_links"><a href="/leagues/MLB/2014-standard-batting.shtml">2014 MLB</a>
 &nbsp;/&nbsp;<a href="/leagues/AL/2015-standard-batting.shtml">2015 AL</a>
 &nbsp;/&nbsp;<a href="/leagues/NL/2015-standard-batting.shtml">2015 NL</a>
@@ -55337,13 +55321,8 @@ function decorateMe(event) {
 var scr = document.createElement("script");scr.setAttribute('async', 'true');scr.type = "text/javascript";scr.src = "http://ad.adip.ly/dlvr/adiply_statmarg.min.js?site_id=SportsReference_AP&t=120";((document.getElementsByTagName('head') || [null])[0] ||
 document.getElementsByTagName('script')[0].parentNode).appendChild(scr);}());</script><script src="http://static.bbref.com/js/ads.js"></script><script type="text/javascript">
 if (typeof sr_test == 'undefined') {document.write('<img class=hidden src="http://static.spref.com/x.gif?obscured">');} else {document.write('<img class=hidden  src="http://static.spref.com/x.gif?seen">');}</script>
-
-
-
 <div id=site_footer>
-
 <!-- sr_pagebottom -->
-
 <script type='text/javascript'>
   googletag.cmd.push(function() {
       googletag.defineSlot('/117033896/sr_br_bottom', [[970, 90],[970, 525]],  'sr_pagebottom').addService(googletag.pubads());
@@ -55357,11 +55336,6 @@ if (typeof sr_test == 'undefined') {document.write('<img class=hidden src="http:
 <script type='text/javascript'>
 googletag.cmd.push(function() { googletag.display('sr_pagebottom'); });
 </script>
-
-
-
-
-
 <div id=sr_footer class="bold_text"><div class="margin xx_large_text"><a href="http://www.sports-reference.com/feedback/">Question, Comment, Feedback or Correction?</a></div> Copyright &copy; 2000-2016
 <a href="http://www.sports-reference.com">Sports Reference LLC</a>.
 All rights reserved.
@@ -55397,14 +55371,8 @@ Bain Collection</a> at the Library of Congress.</div>
 <a href="/feedback/">Found a bug or have a suggestion?</a><br><a href="http://www.sports-reference.com/privacy.shtml">Privacy Statement</a>&nbsp;|
 <a href="http://www.sports-reference.com/termsofuse.shtml">Conditions &amp; Terms of Service</a> |
 <a href="http://www.sports-reference.com/data_use.shtml">Use of Data</a></div>
-
-
 <div class="clear_both align_center large_text bold_text margin">Part of the <a rel="nofollow" href="http://www.foxsports.com/"><img alt="Fox Sports Engage Network" align="top" border="0" width="300" src="http://d3k2oh6evki4b7.cloudfront.net/images-012/engage.gif" height="33" id="exifviewer-img-1" exifid="1901166157" oldsrc="http://d3k2oh6evki4b7.cloudfront.net/images-012/engage.gif"></a> Network</div>
-
 </div>
-
-
 </div><!-- div#page_container -->
-
 </body><!-- SR -->
 </html>

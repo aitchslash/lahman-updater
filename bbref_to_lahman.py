@@ -20,8 +20,6 @@ Notes:
 
 
 ToDo:
-make globals for db access (host, user, pw, db)
-
 move testers and resets to utils
 
 delete old code and print statements
@@ -65,7 +63,7 @@ import pprint  # nb, just for test prints
 lahmandb = "lahmandb"
 username = "root"
 password = ''
-host = "localhost" 
+host = "localhost"
 
 bats_csv = 'data/data2015/bbref_2015_batting.csv'
 arms_csv = 'data/data2015/bbref_2015_pitching.csv'
