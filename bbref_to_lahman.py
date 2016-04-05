@@ -42,6 +42,7 @@ automate file name generation and remove globals
 update pitching table, take get_headers out of loop
 
 roll inserts into one f(x) - main
+
 create field_length dictionary with header -- done
 :   but could be improved
 
@@ -74,19 +75,6 @@ arms_html = 'data/data2015/bbref_arms_html.shtml'
 arms_extra_html = 'data/data2015/p_batting_against.shtml'
 year = '2015'
 people_csv = 'data/data2015/people.csv'
-
-# could generate field_length dict from len(header)
-field_length = {'batting': 30,
-                'pitching': 35,
-                'C': 29,
-                'SS': 24,
-                '2B': 24,
-                'RF': 25,
-                'LF': 25,
-                'CF': 25,
-                'P': 25,
-                '1B': 25,
-                '3B': 25}
 
 
 def add_pitching_columns():
@@ -223,20 +211,15 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     """Make dictionary mapping bbrefID (as key) to extracted stats (values)."""
     """multiple teams stats are nested as stints"""
 
-    # set field length for data.  If > then multiple stints
-    field_len = field_length[table]
-
     stats_dict = {}
     non_match = []
     with open(bbref_csv, "rb") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
-        print (header)  # nb, just to appease pep-8
+        # print (header)  # nb, just to appease pep-8
         if table == 'P':
             # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
-            print header
-            # field_len = 25 # 35 caused headaches
 
         # read the lines from the csv
         for row in reader:
@@ -251,7 +234,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                     if bbref_id not in stats_dict.keys():
                         stats_dict[bbref_id] = row
                     # then entry exists check if stints haven't been used
-                    elif len(stats_dict[bbref_id]) == field_len:
+                    elif len(stats_dict[bbref_id]) > 10:
                         first_stint = stats_dict[bbref_id]
                         second_stint = row
                         del stats_dict[bbref_id]
@@ -422,9 +405,8 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
     """Make insert string for fielding."""
     stats = stats_dict[key]
     stints = []
-    field_len = field_length[position]
 
-    if len(stats) == field_len:  # only one stint
+    if len(stats) > 10:  # only one stint
         stats['stint'] = 1
         stints.append(stats)
     else:  # unpack stints into the array
