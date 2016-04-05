@@ -419,39 +419,35 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
 
     insert_strings = []
     for stint in stints:
-        if stint['Tm'] != 'TOT':
-            statement_start = "INSERT INTO fielding ("
-            for field in fields_array:
-                statement_start += field + ", "
-            statement_start = statement_start[:-2] + ") VALUES ("
-            ss = statement_start
-            # print key  # test print
-            ss += "'" + key + "', "
-            ss += year + ", "
-            ss += str(stint['stint']) + ", "  # stint + ", "
-            ss += "'" + team_dict[stint["Tm"]] + "', "
-            ss += "'" + stint['Lg'] + "', "
-            ss += "'" + position.upper() + "', "
-            stat_keys = ['G', 'GS', 'PO', 'A', 'E', 'DP',
-                         'PB', 'WP', 'SB', 'CS']
-            for sk in stat_keys:
-                try:
-                    if stint[sk]:
-                        ss += stint[sk] + ', '
-                    else:
-                        ss += '0, '
-                except:  # missing key, e.g. PB for RFer
-                    ss += 'NULL, '
-            # ZR
-            ss += 'NULL, '
-            # InnOuts
-            last_digit = str(float(stint['Inn']))[-1]
-            ipouts = int(float(stint['Inn'])) * 3 + int(last_digit)
-            ss += str(ipouts) + ')'
-            insert_strings.append(ss)
-        else:
-            # nb, skipping year totals.  Could use stints and verify.
-            continue
+        statement_start = "INSERT INTO fielding ("
+        for field in fields_array:
+            statement_start += field + ", "
+        statement_start = statement_start[:-2] + ") VALUES ("
+        ss = statement_start
+        # print key  # test print
+        ss += "'" + key + "', "
+        ss += year + ", "
+        ss += str(stint['stint']) + ", "  # stint + ", "
+        ss += "'" + team_dict[stint["Tm"]] + "', "
+        ss += "'" + stint['Lg'] + "', "
+        ss += "'" + position.upper() + "', "
+        stat_keys = ['G', 'GS', 'PO', 'A', 'E', 'DP',
+                     'PB', 'WP', 'SB', 'CS']
+        for sk in stat_keys:
+            try:
+                if stint[sk]:
+                    ss += stint[sk] + ', '
+                else:
+                    ss += '0, '
+            except:  # missing key, e.g. PB for RFer
+                ss += 'NULL, '
+        # ZR
+        ss += 'NULL, '
+        # InnOuts
+        last_digit = str(float(stint['Inn']))[-1]
+        ipouts = int(float(stint['Inn'])) * 3 + int(last_digit)
+        ss += str(ipouts) + ')'
+        insert_strings.append(ss)
     return insert_strings
 
 
