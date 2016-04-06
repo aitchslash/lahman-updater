@@ -20,6 +20,13 @@ Notes:
 
 
 ToDo:
+finish off scraper
+: maybe add tries
+:   maybe add notification for failure.
+: add note to readme
+: gen urls/create loop to grab arms and bats_csv
+:   optional for fielding
+
 move testers and resets to utils
 
 delete old code and print statements
