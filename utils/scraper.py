@@ -20,9 +20,32 @@ year = '2016'
 # Gecko/20100101 Firefox/7.0.1"
 
 
-def url_maker():
-    """Make url."""
-    pass
+def url_maker(fielding=False, year=year):
+    """Return list of tuples (name, url) for a year."""
+    """Fielding is time consuming, False by default"""
+    """Adjust name to whatever you like."""
+    url_start = 'http://www.baseball-reference.com/leagues/MLB/'
+    url_start += year
+    name_url_pairs = []
+    # make batting tuple
+    bats_url = url_start + '-standard-batting.shtml'
+    name_url_pairs.append(('bats', bats_url))
+
+    # make pitching tuples
+    arms_url = url_start + '-standard-pitching.shtml'
+    name_url_pairs.append(('arms', arms_url))
+    arms_extra_url = url_start + '-batting-pitching.shtml'
+    name_url_pairs.append(('arms_extra', arms_extra_url))
+
+    # make fielding tuples
+    if fielding is True:
+        positions = ['p', 'c', '1b', '2b', '3b', 'ss', 'rf', 'lf', 'cf']
+        url_start += '-specialpos_'
+        for pos in positions:
+            url = url_start + pos + '-fielding.shtml'
+            name_url_pairs.append(('fielding_' + pos, url))
+
+    return name_url_pairs
 
 url = url_start + year + url_end
 
@@ -45,11 +68,12 @@ def get_data(url, name):
     # start up spynner
     br = spynner.Browser()
     # url = url_start + year + url_end
+
     # the page takes a while to load, 10 was too little
     br.load(url, load_timeout=15)
     # br.create_webview()
     # may want to get rid of show() - nice for debugging.
-    br.show()
+    # br.show()
     br.load_jquery(True)
     # unhide non-qualifiers
     br.click('input[type="checkbox"]')
@@ -61,8 +85,13 @@ def get_data(url, name):
 
     print "HTML written."
     # convert table to csv on page. Will be contained in only <pre>
-    br.runjs("""jQuery('span[tip$="values"]:last').click()""")
-    br.wait(10)
+    # fielding query ('span[tip$="values"]')[2] # third of 4
+    if url.find('fielding') == -1:
+        br.runjs("""jQuery('span[tip$="values"]:last').click()""")
+        br.wait(5)
+    else:
+        br.runjs("""jQuery('span[tip$="values"]:eq(2)').click()""")
+        br.wait(5)
 
     soup = BeautifulSoup(br.html, 'html.parser')
     pre_section = soup.find('pre').get_text()
@@ -73,7 +102,11 @@ def get_data(url, name):
     # f(x) freezing in REPL after successful execution
     # tried the two lines below; didn't help
     # br.destroy_webview()
-    br.close()
+    try:
+        br.close()
+    except AttributeError:
+        print "Spynner problem closing browser."
+    # br.close()
     # print "Please don't freeze."
     return None
 
@@ -156,4 +189,4 @@ f.close
 
 # markup = br._get_html()
 '''
-print os.getcwd()
+# print os.getcwd()
