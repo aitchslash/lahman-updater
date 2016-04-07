@@ -23,9 +23,11 @@ ToDo:
 finish off scraper
 : maybe add tries
 :   maybe add notification for failure.
+:   AttributeError 'Browser' has no attribute 'manager'
 : add note to readme
 : gen urls/create loop to grab arms and bats_csv
 :   optional for fielding
+: may want to update chadwick too.
 
 move testers and resets to utils
 
