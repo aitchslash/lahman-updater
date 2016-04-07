@@ -45,9 +45,13 @@ def url_maker(fielding=False, year=year):
             url = url_start + pos + '-fielding.shtml'
             name_url_pairs.append(('fielding_' + pos, url))
 
+    # loop over tuples and get_dats
+    for pair in name_url_pairs:
+        get_data(pair[1], pair[0])
+
     return name_url_pairs
 
-url = url_start + year + url_end
+# url = url_start + year + url_end
 
 
 def get_data(url, name):
@@ -71,13 +75,14 @@ def get_data(url, name):
 
     # the page takes a while to load, 10 was too little
     br.load(url, load_timeout=15)
-    # br.create_webview()
+    br.create_webview()
     # may want to get rid of show() - nice for debugging.
-    # br.show()
+    br.show()
+    print "Processing " + name
     br.load_jquery(True)
     # unhide non-qualifiers
     br.click('input[type="checkbox"]')
-    br.wait_load()
+    br.wait_load(5)
     # grab the html before changing to csv
 
     with open(html_path, 'w') as f:
@@ -102,13 +107,22 @@ def get_data(url, name):
     # f(x) freezing in REPL after successful execution
     # tried the two lines below; didn't help
     # br.destroy_webview()
+    # print "050"
     try:
+        br.destroy_webview()
         br.close()
     except AttributeError:
         print "Spynner problem closing browser."
     # br.close()
-    # print "Please don't freeze."
+    # print "060"
     return None
+
+
+def get_biographical():
+    """D/L biographical data from Chadwick Bureau."""
+    url = 'https://raw.githubusercontent.com/chadwickbureau/'
+    url += 'register/master/data/people.csv'
+    print url
 
 
 def do_stuff():
