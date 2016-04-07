@@ -16,6 +16,7 @@ Notes:
 8) Rookie birthState truncated to 2 chars
 :   may want to expand column to accept more
 :   or find converter
+9) An open issue w/ Spynner throws an AttributeError, currently uncaught
 
 
 
@@ -28,6 +29,11 @@ finish off scraper
 : gen urls/create loop to grab arms and bats_csv
 :   optional for fielding
 : may want to update chadwick too.
+: create a checker for csv and html files
+:   may want to erase them first - we're overwriting anyways
+
+decide on current season
+: update vs. delete then insert
 
 move testers and resets to utils
 
