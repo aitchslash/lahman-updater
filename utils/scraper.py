@@ -122,7 +122,14 @@ def get_biographical():
     """D/L biographical data from Chadwick Bureau."""
     url = 'https://raw.githubusercontent.com/chadwickbureau/'
     url += 'register/master/data/people.csv'
-    print url
+    print "Getting Chadwick Bureau data."
+    print "This may take a minute."
+    chad_path = os.path.join(os.pardir, 'data', 'data' + year)
+    browser = spynner.Browser()
+    cb_csv = browser.download(url)
+    with open(os.path.join(chad_path, 'chadwick.csv'), 'w') as cb:
+        cb.write(cb_csv.encode('utf-8'))
+    return
 
 
 def do_stuff():
