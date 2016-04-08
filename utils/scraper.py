@@ -45,14 +45,21 @@ def url_maker(fielding=False, year=year):
             url = url_start + pos + '-fielding.shtml'
             name_url_pairs.append(('fielding_' + pos, url))
 
+    return name_url_pairs
+    
+
+def main(fielding=False, chadwick=False):
+    """Grab data and write core files."""
+    """Options for fielding data and bio data for rookies/master."""
+    name_url_pairs = url_maker(fielding=fielding)
     # loop over tuples and get_dats
     for pair in name_url_pairs:
         get_data(pair[1], pair[0])
-
-    return name_url_pairs
-
-# url = url_start + year + url_end
-
+    # either do chadwick or not
+    if chadwick is True:
+        get_biographical()
+    # Check if data is there, new and in range of len
+    
 
 def get_data(url, name):
     """Grab csv and html from bbref url and write to data folder."""
