@@ -7,6 +7,7 @@ have to be scraped as well.
 Notes:
 1) Adding mlb advanced media ID as default.  Using INT(11)
 2) Ensure that "Hide non-qualifiers for rate stats" is the same on all docs
+:   if importing by hand.
 3) Stint is not assured to be correct. Relies on bbref order
 4) no recorded out leads to an infinite ERA - using 99.99
 5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
@@ -17,20 +18,12 @@ Notes:
 :   may want to expand column to accept more
 :   or find converter
 9) An open issue w/ Spynner throws an AttributeError, currently uncaught
+10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
 
 
 
 ToDo:
-finish off scraper
-: maybe add tries
-:   maybe add notification for failure.
-:   AttributeError 'Browser' has no attribute 'manager'
-: add note to readme
-: gen urls/create loop to grab arms and bats_csv
-:   optional for fielding
-: may want to update chadwick too.
-: create a checker for csv and html files
-:   may want to erase them first - we're overwriting anyways
+ensure file names are consistent main/scraper
 
 decide on current season
 : update vs. delete then insert
@@ -48,8 +41,6 @@ get old data and update w/ expanded stats (e.g. last 20yrs)
 examine batting stats on bbref to maybe get more
 :   consider getting WAR
 
-look into automating getting csv/source files via spynner
-
 automate file name generation and remove globals
 
 update pitching table, take get_headers out of loop
@@ -58,7 +49,7 @@ roll inserts into one f(x) - main
 
 consider reworking insert_batter & insert_pitcher
 :   maybe use a decorator for the statement_start/end?
-:   first lines in ss the same
+:   first lines in ss the same but may be unclear
 
 open lahman15 release
 :   check inf(inity extracted) pitching
