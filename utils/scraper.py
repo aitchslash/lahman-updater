@@ -7,6 +7,7 @@ and move to correct location.
 import spynner
 import os
 from bs4 import BeautifulSoup
+import time
 # import pyquery
 
 # base url for testing, need to write script
@@ -48,6 +49,40 @@ def url_maker(fielding=False, year=year):
     return name_url_pairs
 
 
+def check_files(expiry=1, fielding=False, chadwick=False):
+    """Verify files in data are new and of expected sizes."""
+    """Set expiry to ensure that files are only 'expiry' days old."""
+    data_dir = os.path.join(os.pardir, 'data', 'data' + year)
+    f_names = os.listdir(data_dir)
+    arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
+    to_check = [] + arms_bats
+    assert len(arms_bats) == 6
+    gloves = [i for i in f_names if i.find('fielding') > -1]
+    assert len(gloves) == 2  # will be 18
+    chad_csv = ['chadwick.csv']
+
+    if fielding is True:
+        to_check += gloves
+    if chadwick is True:
+        assert os.path.isfile(os.path.join(data_dir, 'chadwick.csv'))
+        to_check += chad_csv
+
+    now = time.time()
+    for f in to_check:
+        created = os.path.getmtime(os.path.join(data_dir, f))
+        age = now - created
+        if age > 3600 * 24 * expiry:
+            print "Alert: " + f + " is more than {} day(s) old.".format(expiry)
+
+    # check file size is > arbitrary value
+    paths = [os.path.join(data_dir, i) for i in to_check]
+    for path in paths:
+        assert os.path.getsize(path) > 0
+        if os.path.getsize(path) < 10000:
+            print "Alert: " + path + " is very small."
+    return  # f_names
+
+
 def main(fielding=False, chadwick=False):
     """Grab data and write core files."""
     """Options for fielding data and bio data for rookies/master."""
@@ -59,6 +94,7 @@ def main(fielding=False, chadwick=False):
     if chadwick is True:
         get_biographical()
     # Check if data is there, new and in range of len
+    check_files(1, fielding=fielding, chadwick=chadwick)
 
 
 def get_data(url, name):
@@ -89,7 +125,7 @@ def get_data(url, name):
     br.load_jquery(True)
     # unhide non-qualifiers
     br.click('input[type="checkbox"]')
-    br.wait_load(5)
+    br.wait_load(10)
     # grab the html before changing to csv
 
     with open(html_path, 'w') as f:
@@ -153,12 +189,6 @@ def do_stuff():
     print g
     return h, g
 
-
-def main():
-    """Tester."""
-    get_data()
-    cwd, dirstr = do_stuff()
-    return cwd, dirstr
 
 # the jQuery/pyQuery finder for "Hide all non-qualifiers"
 # quals = '''$('input[type="checkbox"]').click()'''
