@@ -46,7 +46,7 @@ def url_maker(fielding=False, year=year):
             name_url_pairs.append(('fielding_' + pos, url))
 
     return name_url_pairs
-    
+
 
 def main(fielding=False, chadwick=False):
     """Grab data and write core files."""
@@ -59,7 +59,7 @@ def main(fielding=False, chadwick=False):
     if chadwick is True:
         get_biographical()
     # Check if data is there, new and in range of len
-    
+
 
 def get_data(url, name):
     """Grab csv and html from bbref url and write to data folder."""
