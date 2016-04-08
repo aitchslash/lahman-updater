@@ -2,6 +2,10 @@
 
 Get csv and html data, store in file
 and move to correct location.
+
+Depending on your d/l speed and the speed of baseball-reference's
+server you may wish to change the wait_load values.  More time is
+slower but you're more likely to get the data.
 """
 
 import spynner
