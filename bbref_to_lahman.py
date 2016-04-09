@@ -71,12 +71,6 @@ username = "root"
 password = ''
 host = "localhost"
 
-bats_csv = 'data/data2015/bbref_2015_batting.csv'
-arms_csv = 'data/data2015/bbref_2015_pitching.csv'
-arms_extra_csv = 'data/data2015/p_batting_against.csv'
-bats_html = 'data/data2015/bbref_html.shtml'
-arms_html = 'data/data2015/bbref_arms_html.shtml'
-arms_extra_html = 'data/data2015/p_batting_against.shtml'
 year = '2015'
 people_csv = 'data/data2015/people.csv'
 
@@ -284,12 +278,20 @@ def make_team_dict():
     return team_dict
 
 
-def setup(expanded=True):
+def setup(expanded=True, year=year):
     """Run one-time queries and audit data."""
+    bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
+    assert os.path.isfile(bats_html)
     ids = get_ids(bats_html)
+    arms_html = os.path.join('', 'data', 'data' + year, 'arms.shtml')
+    assert os.path.isfile(arms_html)
     p_ids = get_ids(arms_html)
+    bats_csv = os.path.join('', 'data', 'data' + year, 'bats.csv')
+    assert os.path.isfile(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
-    # old lines, might be useful if not adding expanded data
+    # old lines commented out, might be useful if not adding expanded data
+    arms_csv = os.path.join('', 'data', 'data' + year, 'arms.csv')
+    assert os.path.isfile(arms_csv)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # a, pitching_dict, c = expand_p_test()
     if expanded is True:
@@ -524,7 +526,11 @@ def expand_pitch_stats_fork(pitching_dict):
 
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
+    arms_extra_html = os.path.join('', 'data', 'data' + year, 'arms_extra.shtml')
+    assert os.path.isfile(arms_extra_html)
     ids = get_ids(arms_extra_html)
+    arms_extra_csv = os.path.join('', 'data', 'data' + year, 'arms_extra.csv')
+    assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
     assert sd.keys() == pitching_dict.keys()
