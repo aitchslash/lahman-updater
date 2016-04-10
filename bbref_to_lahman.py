@@ -71,7 +71,7 @@ username = "root"
 password = ''
 host = "localhost"
 
-year = '2015'
+year = '2016'
 people_csv = 'data/data2015/people.csv'
 
 
@@ -216,7 +216,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
         if table == 'P':
             # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
-
+        print "010"
         # read the lines from the csv
         for row in reader:
             name = row['Name']
@@ -308,7 +308,7 @@ def setup(expanded=True, year=year):
     populate_master(rookie_set)
     ins_table_data(batting_dict, batting_cols, table='batting')
     ins_table_data(pitching_dict, pitching_cols, table='pitching')
-    ins_fielding()
+    # ins_fielding()
     # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
     return
 
@@ -506,6 +506,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array):
     return insert_strings
 
 
+'''
 def expand_pitch_stats_fork(pitching_dict):
     """Add expanded stats to pitching_dict."""
     ids = get_ids(arms_extra_html)
@@ -522,6 +523,7 @@ def expand_pitch_stats_fork(pitching_dict):
                 stints.append(new_sd[p_id][stint])
         for stint in stints:
             pitching_dict[p_id]
+'''
 
 
 def expand_pitch_stats(pitching_dict):

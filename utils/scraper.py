@@ -146,7 +146,14 @@ def get_data(url, name):
         br.wait(5)
 
     soup = BeautifulSoup(br.html, 'html.parser')
+    # try this
+    # soup = soup.decode('utf-8', 'ignore')
     pre_section = soup.find('pre').get_text()
+    # print "Type of pre_section: ",
+    # print type(pre_section)
+    # and try this too.
+    pre_section = pre_section.encode('ascii', 'replace')
+    pre_section = pre_section.replace('?', ' ')
     with open(csv_path, 'w') as p:
         p.write(pre_section.encode('utf-8'))
 
