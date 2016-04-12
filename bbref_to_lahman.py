@@ -27,9 +27,12 @@ ensure file names are consistent main/scraper
 revert to old code
 refine soup selector - don't grab <a href's from day's games
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
+:   put an assertion in get_ids - should deal w/ it better
 
 decide on current season
 : update vs. delete then insert
+
+
 
 move testers and resets to utils
 
@@ -135,9 +138,10 @@ def get_ids(page):
             pprint.pprint(name)
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
+        assert name_bbref_dict.has_key(name) is False
         name_bbref_dict[name] = bbref_id
 
-    return name_bbref_dict, soup  # soup is only temporary
+    return name_bbref_dict  # soup is only temporary
 
 
 def fix_csv(func):
