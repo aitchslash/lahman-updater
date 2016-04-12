@@ -24,6 +24,9 @@ Notes:
 
 ToDo:
 ensure file names are consistent main/scraper
+revert to old code
+refine soup selector - don't grab <a href's from day's games
+ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 
 decide on current season
 : update vs. delete then insert
@@ -113,10 +116,16 @@ def get_ids(page):
         soup = BeautifulSoup(html, 'html.parser')
 
     name_bbref_dict = {}
-    tags = soup.select('a[href^=/players/]')
+    # hope = soup.find('div', {"id": "all_players_standard_pitching"})
+    all_players_div = soup.select('div[id^all_players_]')
+    assert len(all_players_div) == 1  # should be one and only one
+    tags = all_players_div[0].select('a[href^=/players/]')
+
+    # old line, would work w/ 2016 if Missing name included in if cond.
+    # tags = soup.select('a[href^=/players/]')
     for tag in tags:
         # format and deal w/ unicode
-        name = (tag.parent.text)
+        name = (tag.parent.text)  # old working (pre-scraper) line
         name = name.encode('ascii', 'replace')  # .decode('ascii')
         name = name.replace('?', ' ')
         if name[-1].isalnum() is False:
@@ -127,7 +136,8 @@ def get_ids(page):
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
         name_bbref_dict[name] = bbref_id
-    return name_bbref_dict
+
+    return name_bbref_dict, soup  # soup is only temporary
 
 
 def fix_csv(func):
@@ -528,9 +538,9 @@ def expand_pitch_stats_fork(pitching_dict):
 
 def expand_pitch_stats(pitching_dict):
     """Add new stats to pitching_dict."""
-    arms_extra_html = os.path.join('', 'data', 'data' + year, 'arms_extra.shtml')
-    assert os.path.isfile(arms_extra_html)
-    ids = get_ids(arms_extra_html)
+    arms_exp_html = os.path.join('', 'data', 'data' + year, 'arms_extra.shtml')
+    assert os.path.isfile(arms_exp_html)
+    ids = get_ids(arms_exp_html)
     arms_extra_csv = os.path.join('', 'data', 'data' + year, 'arms_extra.csv')
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
