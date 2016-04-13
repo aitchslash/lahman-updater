@@ -138,7 +138,7 @@ def get_ids(page):
             pprint.pprint(name)
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
-        assert name_bbref_dict.has_key(name) is False
+        # assert name_bbref_dict.has_key(name) is False
         name_bbref_dict[name] = bbref_id
 
     return name_bbref_dict  # soup is only temporary
@@ -627,7 +627,10 @@ def populate_master(rookie_set, expanded=True):
         # data from bbref
         a, rookie_data = rookie_deets(rookie)
         # data from chadwick
-        rookie_data.update(ppl_dict[rookie])
+        try:
+            rookie_data.update(ppl_dict[rookie])
+        except KeyError:
+            print "Chadwick missing data for: " + rookie
         # set finalGame
         rookie_data['finalGame'] = "'" + year + "-12-31 00:00:00'"
         for col in cols:
