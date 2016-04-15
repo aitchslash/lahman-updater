@@ -19,6 +19,8 @@ Notes:
 :   or find converter
 9) An open issue w/ Spynner throws an AttributeError, currently uncaught
 10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
+11) Rookie missing from Chadwick (34 as of Apr 13/16)
+:   SELECT * FROM master WHERE bbrefID IS NULL
 
 
 
