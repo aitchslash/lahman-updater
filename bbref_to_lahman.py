@@ -26,15 +26,11 @@ Notes:
 
 ToDo:
 ensure file names are consistent main/scraper
-revert to old code
-refine soup selector - don't grab <a href's from day's games
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
 
 decide on current season
 : update vs. delete then insert
-
-
 
 move testers and resets to utils
 
@@ -49,9 +45,7 @@ get old data and update w/ expanded stats (e.g. last 20yrs)
 examine batting stats on bbref to maybe get more
 :   consider getting WAR
 
-automate file name generation and remove globals
-
-update pitching table, take get_headers out of loop
+remove global for chadwick
 
 roll inserts into one f(x) - main
 
