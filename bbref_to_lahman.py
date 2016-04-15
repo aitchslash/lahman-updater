@@ -34,6 +34,8 @@ decide on current season
 
 move testers and resets to utils
 
+might want to break into a setup.py and a update.py
+
 delete old code and print statements
 improve comments and doc strings
 update readme
@@ -568,7 +570,7 @@ def expand_pitch_stats(pitching_dict):
     return sd
 
 
-def reset_db(table='batting', year=year):
+def reset_table(table='batting', year=year):
     """Clear out all entries w/ yearID = year."""
     """Set table='pitching' to reset that table"""
     mydb = pymysql.connect(host, username, password, lahmandb)
@@ -577,6 +579,16 @@ def reset_db(table='batting', year=year):
     cursor.execute(statement)
     mydb.commit()
     cursor.close()
+
+
+def reset_db():
+    """Reset database to 2014."""
+    """For testing. Leaves in expanded stats."""
+    for year in ['2015', '2016']:
+        for table in ['batting', 'pitching', 'fielding']:
+            reset_table(table=table, year=year)
+    reset_master()
+    print "database reset to 2014."
 
 
 def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
