@@ -47,6 +47,8 @@ examine batting stats on bbref to maybe get more
 
 remove global for chadwick
 
+finalGame in master not updating.
+
 roll inserts into one f(x) - main
 
 consider reworking insert_batter & insert_pitcher
