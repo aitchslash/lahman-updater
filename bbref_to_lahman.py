@@ -292,8 +292,9 @@ def make_team_dict():
     return team_dict
 
 
-def setup(expanded=True, year=year):
-    """Run one-time queries and audit data."""
+def update_year(expanded=True, year=year):
+    """Update lahmandb with current year stats."""
+    """Checks data files in place.  Assumes no existing data."""
     bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
     assert os.path.isfile(bats_html)
     ids = get_ids(bats_html)
@@ -325,6 +326,18 @@ def setup(expanded=True, year=year):
     # ins_fielding()
     # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
     return
+
+
+def main():
+    """Update db with current years stats."""
+    # check if setup has been run - if not error
+    # check age of files.  If old, get new data -f flag to force new get
+    # get new data - run spynner
+    # delete existing data for current year
+    for table in ['batting', 'pitching', 'fielding']:
+        reset_table(table=table)
+    # insert new data
+    update_year()
 
 
 def ins_table_data(table_data, cols_array, table='batting'):
