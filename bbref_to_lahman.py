@@ -25,6 +25,9 @@ Notes:
 
 
 ToDo:
+implement cmd line argparse
+convert main pseudocode into code
+
 ensure file names are consistent main/scraper
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
@@ -330,11 +333,15 @@ def update_year(expanded=True, year=year):
     return
 
 
-def main(argv):
+def main():
     """Update db with current years stats."""
     # check if setup has been run - if not error
+    # check db connection and last year updated
+    #
     # check age of files.  If old, get new data -f flag to force new get
-    # get new data - run spynner
+    # if force == True or os.path.changed file
+    #   get new data - run spynner
+    # else print data still fresh - exit
     # delete existing data for current year
     for table in ['batting', 'pitching', 'fielding']:
         reset_table(table=table)
