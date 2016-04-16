@@ -62,6 +62,8 @@ open lahman15 release
 :   check teamID's for Chicago
 """
 
+import sys
+import argparse
 import csv
 from bs4 import BeautifulSoup
 import pymysql
@@ -328,7 +330,7 @@ def update_year(expanded=True, year=year):
     return
 
 
-def main():
+def main(argv):
     """Update db with current years stats."""
     # check if setup has been run - if not error
     # check age of files.  If old, get new data -f flag to force new get
@@ -806,3 +808,7 @@ def make_paths(position, year=year):
     shtml_path = os.path.join(cwd, "data", "data" + year, "fielding",
                               "bbref_" + position + "_fielding.shtml")
     return csv_path, shtml_path
+
+
+if __name__ == '__main__':
+    main()
