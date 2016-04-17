@@ -90,10 +90,10 @@ import time
 import pprint  # nb, just for test prints
 
 # database globals, put your details here
-lahmandb = "lahmandb"
-username = "root"
-password = ''
-host = "localhost"
+# lahmandb = "lahmandb"
+# username = "root"
+# password = ''
+# host = "localhost"
 
 # year = '2016'
 people_csv = 'data/data2015/people.csv'
@@ -107,6 +107,7 @@ def set_default_season():
         year = str(int(year) - 1)
     return year
 
+
 year = set_default_season()
 
 
@@ -116,6 +117,13 @@ def get_db_login(path='data/db_details.txt'):
         lines = [line.strip() for line in f]
         login_dict = {i.split(":")[0]: i.split(":")[1] for i in lines}
     return login_dict
+
+# database login info  # may have to pass this through funcs
+db = get_db_login()
+lahmandb = db['db']
+host = db['host']
+username = db['username']
+password = db['password']
 
 
 def add_pitching_columns():
