@@ -77,8 +77,9 @@ from bs4 import BeautifulSoup
 import pymysql
 import os
 import urllib2
-from time import strptime
-from time import sleep
+import time
+# from time import strptime
+# from time import sleep
 import pprint  # nb, just for test prints
 
 # database globals, put your details here
@@ -697,7 +698,7 @@ def populate_master(rookie_set, expanded=True):
             print "too_long: " + statement
 
         cursor.execute(statement)
-        sleep(0.5)
+        time.sleep(0.5)
 
     mydb.commit()
     cursor.close()
@@ -780,7 +781,7 @@ def rookie_deets(rookie_id):
     update_string += "birthCity='" + birth_city + "', "
     debut_text = soup.select('a[href*="dest=debut"]')[0].get_text()
     deb_dates = debut_text.split(' ')
-    deb_mon = str(strptime(deb_dates[0], '%B').tm_mon)
+    deb_mon = str(time.strptime(deb_dates[0], '%B').tm_mon)
     deb_day = str(deb_dates[1][:-1])
     deb_year = str(deb_dates[2])
     debut_time = "'" + deb_year + "-" + deb_mon + "-" + deb_day + " 00:00:00'"
@@ -802,7 +803,7 @@ def update_master(rookie_list):
     for rookie in rookie_list:
         statement, rook_data = rookie_deets(rookie)
         cursor.execute(statement)
-        sleep(0.5)
+        time.sleep(0.5)
     mydb.commit()
     cursor.close()
 
