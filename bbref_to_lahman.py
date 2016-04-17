@@ -88,8 +88,19 @@ username = "root"
 password = ''
 host = "localhost"
 
-year = '2016'
+# year = '2016'
 people_csv = 'data/data2015/people.csv'
+
+
+def set_default_season():
+    """Return current year (cy) or cy - 1 if off-season."""
+    cy = time.strftime("%Y-%m")
+    year, month = cy.split("-")
+    if not int(month) > 3:
+        year = str(int(year) - 1)
+    return year
+
+year = set_default_season()
 
 
 def add_pitching_columns():
