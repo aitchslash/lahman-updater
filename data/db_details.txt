@@ -1,0 +1,4 @@
+host: localhost
+db: lahmandb
+password: 
+username: root
