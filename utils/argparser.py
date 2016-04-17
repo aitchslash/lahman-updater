@@ -33,7 +33,7 @@ def process_args(args):
 
     parser.add_argument('-d',
                         '--dbloginfile',
-                        default='some_file_path',
+                        default='data/db_details.txt',
                         help='path to file with db login details')
     parser.add_argument('-x',
                         '--expanded',

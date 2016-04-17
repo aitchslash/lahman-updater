@@ -36,6 +36,13 @@ ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 decide on current season
 : update vs. delete then insert
 
+look into context managers vs. pymysql
+: https://docs.python.org/2.5/whatsnew/pep-343.html
+: http://jessenoller.com/2009/02/03/
+        get-with-the-program-as-contextmanager-completely-different/
+: http://stackoverflow.com/questions/1107297/
+        looking-for-a-more-pythonic-way-to-access-the-database
+
 move testers and resets to utils
 
 might want to break into a setup.py and a update.py
@@ -101,6 +108,14 @@ def set_default_season():
     return year
 
 year = set_default_season()
+
+
+def get_db_login(path='data/db_details.txt'):
+    """Get login details for database from file."""
+    with open(path, 'r') as f:
+        lines = [line.strip() for line in f]
+        login_dict = {i.split(":")[0]: i.split(":")[1] for i in lines}
+    return login_dict
 
 
 def add_pitching_columns():
