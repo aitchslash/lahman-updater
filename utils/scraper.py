@@ -16,8 +16,8 @@ import time
 
 # base url for testing, need to write script
 # to generate url's for other years
-url_start = 'http://www.baseball-reference.com/leagues/MLB/'
-url_end = '-standard-batting.shtml'
+# url_start = 'http://www.baseball-reference.com/leagues/MLB/'
+# url_end = '-standard-batting.shtml'
 year = '2016'
 
 # example of changing browser, not in use
@@ -56,7 +56,8 @@ def url_maker(fielding=False, year=year):
 def check_files(expiry=1, fielding=False, chadwick=False):
     """Verify files in data are new and of expected sizes."""
     """Set expiry to ensure that files are only 'expiry' days old."""
-    data_dir = os.path.join(os.pardir, 'data', 'data' + year)
+    """Intended to be run as import from main dir.  Paths are affected."""
+    data_dir = os.path.join('', 'data', 'data' + year)
     f_names = os.listdir(data_dir)
     arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
     to_check = [] + arms_bats
@@ -110,7 +111,7 @@ def get_data(url, name):
     # make the paths for the files
     # and the directory if needed
     # cwd = os.path.getcwd()
-    stats_dir = os.path.join(os.pardir, 'data', 'data' + year)
+    stats_dir = os.path.join('', 'data', 'data' + year)
     if os.path.isdir(stats_dir) is False:
         print "Need to make directory."
         os.mkdir(stats_dir)
@@ -178,7 +179,7 @@ def get_biographical():
     url += 'register/master/data/people.csv'
     print "Getting Chadwick Bureau data."
     print "This may take a minute."
-    chad_path = os.path.join(os.pardir, 'data', 'data' + year)
+    chad_path = os.path.join('', 'data', 'data' + year)
     browser = spynner.Browser()
     cb_csv = browser.download(url)
     with open(os.path.join(chad_path, 'chadwick.csv'), 'w') as cb:

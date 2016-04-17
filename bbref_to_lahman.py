@@ -1,3 +1,4 @@
+# /usr/bin/env python
 """
 This reads the 2015 MLB hitting stats from a csv from bbref.
 
@@ -66,7 +67,11 @@ open lahman15 release
 """
 
 import sys
-import argparse
+# import argparse
+# import utils.argparse
+# import utils.scraper
+# import utils
+from utils.argparser import process_args
 import csv
 from bs4 import BeautifulSoup
 import pymysql
@@ -334,6 +339,13 @@ def update_year(expanded=True, year=year):
 
 
 def main():
+    """Testing cmd line getter."""
+    options = process_args(sys.argv[1:])
+    for option in options:
+        print str(option) + ': ' + str(options[option])
+
+
+def main_pseudo():
     """Update db with current years stats."""
     # check if setup has been run - if not error
     # check db connection and last year updated
