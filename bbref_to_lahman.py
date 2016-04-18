@@ -29,6 +29,8 @@ ToDo:
 implement cmd line argparse
 convert main pseudocode into code
 
+concered about non-current years - original data would be deleted. should write an update
+
 ensure file names are consistent main/scraper
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
@@ -79,6 +81,7 @@ import sys
 # import utils.scraper
 # import utils
 from utils.argparser import process_args
+from utils.scraper import check_files
 import csv
 from bs4 import BeautifulSoup
 import pymysql
@@ -420,12 +423,16 @@ def main():
     if not 1876 <= int(options['year']) <= int(year):
         print "Baseball data only available from 1876 to " + year
         sys.exit()
-    if max_year != year:
+    if max_year != int(year):
         print "No data for current year in db."
         print "Run setup.py or use --ignore"
         sys.exit()
-    # if not ignore check expiry
+    if options['ignore'] is False:  # put in argparse option for chadwick
+        check_files(expiry=options['expiry'],
+                    fielding=options['fielding'],
+                    chadwick=options['chadwick'])
 
+    # concered about non-current years - original data would be deleted. should write an update
     # update_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
     return max_year
 
