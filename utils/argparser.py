@@ -17,7 +17,7 @@ def process_args(args):
                         action='store_true',
                         help='Force get of new data ingnoring expiry')
 
-    parser.add_argument('-e',
+    parser.add_argument('-x',
                         '--expiry',
                         type=int,
                         default=1,
@@ -35,11 +35,11 @@ def process_args(args):
                         '--dbloginfile',
                         default='data/db_details.txt',
                         help='path to file with db login details')
-    parser.add_argument('-x',
-                        '--expanded',
-                        action='store_false',
-                        default=True,
-                        help='Set to true. Expand fields in db (e.g. FIP, OPS, MLBamID)')
+    parser.add_argument('-o',
+                        '--orthodox',
+                        action='store_true',
+                        default=False,
+                        help='Set to not expand db stats (e.g. FIP, OPS, MLBamID)')
     parser.add_argument('-f',
                         '--fielding',
                         action='store_true',
