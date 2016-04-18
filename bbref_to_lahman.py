@@ -115,10 +115,12 @@ def get_db_login(path='data/db_details.txt'):
     """Get login details for database from file."""
     with open(path, 'r') as f:
         lines = [line.strip() for line in f]
-        login_dict = {i.split(":")[0]: i.split(":")[1] for i in lines}
+        login_dict = {i.split(":")[0].strip(): i.split(":")[1].strip()
+                      for i in lines}
     return login_dict
 
 # database login info  # may have to pass this through funcs
+
 db = get_db_login()
 lahmandb = db['db']
 host = db['host']
@@ -337,7 +339,7 @@ def make_team_dict():
     return team_dict
 
 
-def update_year(expanded=True, year=year):
+def update_year(expanded=True, year=year, fielding=False):
     """Update lahmandb with current year stats."""
     """Checks data files in place.  Assumes no existing data."""
     bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
@@ -368,7 +370,8 @@ def update_year(expanded=True, year=year):
     populate_master(rookie_set)
     ins_table_data(batting_dict, batting_cols, table='batting')
     ins_table_data(pitching_dict, pitching_cols, table='pitching')
-    # ins_fielding()
+    if fielding is True:
+        ins_fielding()
     # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
     return
 
@@ -378,6 +381,53 @@ def main():
     options = process_args(sys.argv[1:])
     for option in options:
         print str(option) + ': ' + str(options[option])
+
+    '''
+    print lahmandb
+    print type(lahmandb)
+    print host
+    print type(host)
+    print password
+    print type(password)
+    print username
+    print type(username)
+    '''
+    try:
+        mydb = pymysql.connect(host, username, password, lahmandb)
+        cursor = mydb.cursor()
+        statement = 'SELECT MAX(yearID) from batting'
+        cursor.execute(statement)
+        max_year = cursor.fetchone()[0]
+        mydb.commit()
+        cursor.close()
+    except:
+        print "Error connecting to database."
+        # check db path is file
+        try:
+            login_dict = get_db_login(options['dbloginfile'])
+            if len(login_dict) != 4:
+                print "Something is wrong with your login file."
+                print "Consider running setup.py"
+            else:
+                print "Path looks OK. Make sure db is running."
+                sys.exit()
+        except:
+            print "Unable to extract login details."
+            print "Please check your path."
+            sys.exit()
+
+        sys.exit()
+    if not 1876 <= int(options['year']) <= int(year):
+        print "Baseball data only available from 1876 to " + year
+        sys.exit()
+    if max_year != year:
+        print "No data for current year in db."
+        print "Run setup.py or use --ignore"
+        sys.exit()
+    # if not ignore check expiry
+
+    # update_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
+    return max_year
 
 
 def main_pseudo():
@@ -393,6 +443,7 @@ def main_pseudo():
     for table in ['batting', 'pitching', 'fielding']:
         reset_table(table=table)
     # insert new data
+    # update_year(expanded=options['expanded'], year=options['year'])
     update_year()
 
 
