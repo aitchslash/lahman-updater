@@ -44,7 +44,11 @@ def process_args(args):
                         '--fielding',
                         action='store_true',
                         default=False,
-                        help='update fielding (NB time consuming)')
+                        help='update fielding (NB time consuming)'),
+    parser.add_argument('-c',
+                        '--chadwick',
+                        action='store_true',
+                        help='Download ~35Mb csv from chadwick-bureau')
     option = parser.parse_args(args)
     return vars(option)
 
