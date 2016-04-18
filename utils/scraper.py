@@ -18,6 +18,7 @@ import time
 # to generate url's for other years
 # url_start = 'http://www.baseball-reference.com/leagues/MLB/'
 # url_end = '-standard-batting.shtml'
+
 year = '2016'
 
 # example of changing browser, not in use
@@ -185,78 +186,3 @@ def get_biographical():
     with open(os.path.join(chad_path, 'chadwick.csv'), 'w') as cb:
         cb.write(cb_csv.encode('utf-8'))
     return
-
-
-def do_stuff():
-    """Test to make sure REPL freeze doesn't screw things."""
-    h = os.getcwd()
-    g = os.path.dirname(h)
-    h = os.path.join(g, 'data', 'data' + year)
-    if os.path.isdir(h):
-        print 'isdir'
-    else:
-        os.mkdir(h)
-        print "made new directory for {}".format(year)
-
-    print g
-    return h, g
-
-
-# the jQuery/pyQuery finder for "Hide all non-qualifiers"
-# quals = '''$('input[type="checkbox"]').click()'''
-# the jQ for the download.
-# dl_links = '''$('span[tip$="Excel"]')'''
-# db_links[0] is teams [1] is players
-
-
-# br.show()
-
-target = """<span tip="Get a downloadable file suitable for Excel"
-            class="tooltip"
-            onclick="sr_download_data('players_standard_batting');
-            try { ga('send','event','Tool','Action','Export'); }
-            catch (err) {}">
-            Export</span>"""
-
-js = """sr_download_data('players_standard_batting');
-        try { ga('send','event','Tool','Action','Export');
-        } catch (err) {}"""
-# print js
-# br.runjs(js)
-# br.wait_load()
-
-# anchors = br.webframe.findAllElements('span[tip$="Excel"]')
-# print "len of anchors: ",
-# print len(anchors)
-# print anchors[1].toPlainText()
-# br.wk_click_element_link(anchors[1], timeout=10)
-# br.click(exports[1], timeout=20)
-# print "Noticed the click"
-
-# d = pyquery.PyQuery(br.html)
-# print str(d('span[tip$="Excel"]'[1]))
-# print br.('span[tip$="Excel"]:last')
-# br.click('span[tip$="Excel"]:last', wait_load=True)
-# tar = """"""
-
-# br.runjs("""jQuery('span[tip$="Excel"]:last').click()""")
-
-# alt technique click to change to csv, grab data
-# prior to converting the data we need the html links
-
-'''
-pyq_doc = pyquery.PyQuery(br.html)
-# the comma separated data is in the only 'Pre' tags
-csv = pyq_doc('pre').text()
-# print "here"
-# print len(csv)
-# print type(csv)
-# print csv[:200]
-
-f = open('trial', 'w')
-f.write(csv.encode('utf-8'))
-f.close
-
-# markup = br._get_html()
-'''
-# print os.getcwd()
