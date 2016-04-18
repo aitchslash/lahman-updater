@@ -54,11 +54,15 @@ def url_maker(fielding=False, year=year):
     return name_url_pairs
 
 
-def check_files(expiry=1, fielding=False, chadwick=False):
+def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     """Verify files in data are new and of expected sizes."""
     """Set expiry to ensure that files are only 'expiry' days old."""
     """Intended to be run as import from main dir.  Paths are affected."""
-    data_dir = os.path.join('', 'data', 'data' + year)
+    past_due, exists = False, True
+    data_dir = os.path.join('', 'data', 'data' + str(year))
+    if os.path.isdir(data_dir) is False:
+        print "Data dir for " + str(year) + " is missing."
+        return True, False  # past_due, exists  # nb, uglyish
     f_names = os.listdir(data_dir)
     arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
     to_check = [] + arms_bats
@@ -75,10 +79,15 @@ def check_files(expiry=1, fielding=False, chadwick=False):
 
     now = time.time()
     for f in to_check:
+        if os.path.isfile(os.path.join(data_dir, f)) is False:
+            exists = False
+            print f + " not found."
+            return True, False  # past_due, exists  # nb, ugly
         created = os.path.getmtime(os.path.join(data_dir, f))
         age = now - created
         if age > 3600 * 24 * expiry:
             print "Alert: " + f + " is more than {} day(s) old.".format(expiry)
+            past_due = True
 
     # check file size is > arbitrary value
     paths = [os.path.join(data_dir, i) for i in to_check]
@@ -86,13 +95,13 @@ def check_files(expiry=1, fielding=False, chadwick=False):
         assert os.path.getsize(path) > 0
         if os.path.getsize(path) < 10000:
             print "Alert: " + path + " is very small."
-    return  # f_names
+    return past_due, exists
 
 
-def main(fielding=False, chadwick=False):
-    """Grab data and write core files."""
+def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
+    """Grab all data and write core files."""
     """Options for fielding data and bio data for rookies/master."""
-    name_url_pairs = url_maker(fielding=fielding)
+    name_url_pairs = url_maker(year=year, fielding=fielding)
     # loop over tuples and get_dats
     for pair in name_url_pairs:
         get_data(pair[1], pair[0])
@@ -100,11 +109,12 @@ def main(fielding=False, chadwick=False):
     if chadwick is True:
         get_biographical()
     # Check if data is there, new and in range of len
-    check_files(1, fielding=fielding, chadwick=chadwick)
+    past_due, exists = check_files(year, expiry, fielding=fielding, chadwick=chadwick)
+    print past_due, exists  # just for pep-8
 
 
 def get_data(url, name):
-    """Grab csv and html from bbref url and write to data folder."""
+    """Grab one csv and one html from bbref url and write to data folder."""
     """Will overwrite existing files.
     Runtime is about 30sec per page.
     -> Fielding data would take about 5mins.
