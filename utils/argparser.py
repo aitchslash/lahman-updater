@@ -39,7 +39,7 @@ def process_args(args):
                         '--expanded',
                         action='store_false',
                         default=True,
-                        help='Expand fields in db (e.g. FIP, OPS, MLBamID)')
+                        help='Set to true. Expand fields in db (e.g. FIP, OPS, MLBamID)')
     parser.add_argument('-f',
                         '--fielding',
                         action='store_true',
