@@ -39,7 +39,7 @@ def process_args(args):
                         '--orthodox',
                         action='store_true',
                         default=False,
-                        help='Set to not expand db stats (e.g. FIP, OPS, MLBamID)')
+                        help='Set flag to not use expanded db stats (e.g. FIP, OPS, MLBamID)')
     parser.add_argument('-f',
                         '--fielding',
                         action='store_true',

@@ -31,7 +31,7 @@ def url_maker(fielding=False, year=year):
     """Fielding is time consuming, False by default"""
     """Adjust name to whatever you like."""
     url_start = 'http://www.baseball-reference.com/leagues/MLB/'
-    url_start += year
+    url_start += str(year)
     name_url_pairs = []
     # make batting tuple
     bats_url = url_start + '-standard-batting.shtml'
@@ -79,6 +79,7 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
 
     now = time.time()
     for f in to_check:
+        # nb, this if block is likely redundant
         if os.path.isfile(os.path.join(data_dir, f)) is False:
             exists = False
             print f + " not found."
@@ -86,7 +87,7 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
         created = os.path.getmtime(os.path.join(data_dir, f))
         age = now - created
         if age > 3600 * 24 * expiry:
-            print "Alert: " + f + " is more than {} day(s) old.".format(expiry)
+            # print "Alert: " + f + " is more than {} day(s) old.".format(expiry)
             past_due = True
 
     # check file size is > arbitrary value
@@ -95,6 +96,8 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
         assert os.path.getsize(path) > 0
         if os.path.getsize(path) < 10000:
             print "Alert: " + path + " is very small."
+    if past_due:
+        print "Alert: files are more than {} day(s) old.".format(expiry)
     return past_due, exists
 
 
@@ -110,7 +113,9 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
         get_biographical()
     # Check if data is there, new and in range of len
     past_due, exists = check_files(year, expiry, fielding=fielding, chadwick=chadwick)
-    print past_due, exists  # just for pep-8
+    if past_due is False and exists is True:
+        print "Files now up to date."
+    # return past_due, exists
 
 
 def get_data(url, name):
@@ -189,7 +194,7 @@ def get_biographical():
     url = 'https://raw.githubusercontent.com/chadwickbureau/'
     url += 'register/master/data/people.csv'
     print "Getting Chadwick Bureau data."
-    print "This may take a minute."
+    print "~35MB file. This may take a minute."
     chad_path = os.path.join('', 'data', 'data' + year)
     browser = spynner.Browser()
     cb_csv = browser.download(url)
