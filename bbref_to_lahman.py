@@ -428,9 +428,14 @@ def main():
         print "Run setup.py or use --ignore"
         sys.exit()
     if options['ignore'] is False:  # put in argparse option for chadwick
-        check_files(expiry=options['expiry'],
-                    fielding=options['fielding'],
-                    chadwick=options['chadwick'])
+        past_due, exists = check_files(year=options['year'],
+                                       expiry=options['expiry'],
+                                       fielding=options['fielding'],
+                                       chadwick=options['chadwick'])
+    if past_due or options['ignore'] or not exists:
+        print "This is where I'd be getting data."
+    else:
+        print "Data is fresh. Use --ignore to force refresh or change --expiry"
 
     # concered about non-current years - original data would be deleted. should write an update
     # update_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
