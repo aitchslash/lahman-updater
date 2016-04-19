@@ -81,7 +81,7 @@ import sys
 # import utils.scraper
 # import utils
 from utils.argparser import process_args
-from utils.scraper import check_files
+from utils.scraper import check_files, url_maker, get_data, get_biographical, get_all_data
 import csv
 from bs4 import BeautifulSoup
 import pymysql
@@ -382,8 +382,10 @@ def update_year(expanded=True, year=year, fielding=False):
 def main():
     """Testing cmd line getter."""
     options = process_args(sys.argv[1:])
+    '''
     for option in options:
         print str(option) + ': ' + str(options[option])
+    '''
 
     '''
     print lahmandb
@@ -412,13 +414,10 @@ def main():
                 print "Something is wrong with your login file."
                 print "Consider running setup.py"
             else:
-                print "Path looks OK. Make sure db is running."
-                sys.exit()
+                print "Path to login file looks OK. Make sure db is running."
         except:
             print "Unable to extract login details."
             print "Please check your path."
-            sys.exit()
-
         sys.exit()
     if not 1876 <= int(options['year']) <= int(year):
         print "Baseball data only available from 1876 to " + year
@@ -432,8 +431,20 @@ def main():
                                        expiry=options['expiry'],
                                        fielding=options['fielding'],
                                        chadwick=options['chadwick'])
-    if past_due or options['ignore'] or not exists:
-        print "This is where I'd be getting data."
+    if options['ignore'] or past_due or not exists:
+        print "Getting data from baseball-reference."
+        print "Spynner windows may open."
+        print "Ignore uncaught AttributeError"
+        get_all_data(year=options['year'], expiry=options['expiry'],
+                     fielding=options['fielding'], chadwick=options['chadwick'])
+        # data is good to get here
+        # if year is current year
+        #   reset tables
+        #   update year # might want to rename this insert
+        # else:
+        #   ensure expanded is True
+        #   check columns
+        #   run an update
     else:
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
 
