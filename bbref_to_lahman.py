@@ -19,6 +19,7 @@ Notes:
 :   may want to expand column to accept more
 :   or find converter
 9) An open issue w/ Spynner throws an AttributeError, currently uncaught
+:   poster on Stack Overflow got something similar to work w/ phantomJS
 10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
 11) Rookie missing from Chadwick (34 as of Apr 13/16)
 :   SELECT * FROM master WHERE bbrefID IS NULL
@@ -26,17 +27,13 @@ Notes:
 
 
 ToDo:
-implement cmd line argparse
-convert main pseudocode into code
+test cmd line argparse
 
-concered about non-current years - original data would be deleted. should write an update
+non-current years, write an update - would be excellent to write a data checker here.
 
 ensure file names are consistent main/scraper
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
-
-decide on current season
-: update vs. delete then insert
 
 look into context managers vs. pymysql
 : https://docs.python.org/2.5/whatsnew/pep-343.html
@@ -64,12 +61,6 @@ remove global for chadwick
 
 finalGame in master not updating.
 
-roll inserts into one f(x) - main
-
-consider reworking insert_batter & insert_pitcher
-:   maybe use a decorator for the statement_start/end?
-:   first lines in ss the same but may be unclear
-
 open lahman15 release
 :   check inf(inity extracted) pitching
 :   check teamID's for Chicago
@@ -81,24 +72,16 @@ import sys
 # import utils.scraper
 # import utils
 from utils.argparser import process_args
-from utils.scraper import check_files, url_maker, get_data, get_biographical, get_all_data
+# from utils.scraper import check_files, url_maker, get_data, get_biographical, get_all_data
+from utils.scraper import check_files, get_all_data
 import csv
 from bs4 import BeautifulSoup
 import pymysql
 import os
 import urllib2
 import time
-# from time import strptime
-# from time import sleep
 import pprint  # nb, just for test prints
 
-# database globals, put your details here
-# lahmandb = "lahmandb"
-# username = "root"
-# password = ''
-# host = "localhost"
-
-# year = '2016'
 people_csv = 'data/data2015/people.csv'
 
 
@@ -342,7 +325,7 @@ def make_team_dict():
     return team_dict
 
 
-def update_year(expanded=True, year=year, fielding=False):
+def insert_year(expanded=True, year=year, fielding=False):
     """Update lahmandb with current year stats."""
     """Checks data files in place.  Assumes no existing data."""
     bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
@@ -382,6 +365,11 @@ def update_year(expanded=True, year=year, fielding=False):
 def main():
     """Testing cmd line getter."""
     options = process_args(sys.argv[1:])
+    # toggle orthodox/expanded
+    if options['orthodox'] is True:
+        expanded = False
+    else:
+        expanded = True
     '''
     for option in options:
         print str(option) + ': ' + str(options[option])
@@ -422,9 +410,10 @@ def main():
     if not 1876 <= int(options['year']) <= int(year):
         print "Baseball data only available from 1876 to " + year
         sys.exit()
-    if max_year != int(year):
-        print "No data for current year in db."
-        print "Run setup.py or use --ignore"
+
+    if max_year != int(year) and options['ignore'] is False:
+        print "Preventing overwrite of lahman original data."
+        print "Run setup.py to get past years or use --ignore to force update"
         sys.exit()
     if options['ignore'] is False:  # put in argparse option for chadwick
         past_due, exists = check_files(year=options['year'],
@@ -435,21 +424,32 @@ def main():
         print "Getting data from baseball-reference."
         print "Spynner windows may open."
         print "Ignore uncaught AttributeError"
-        get_all_data(year=options['year'], expiry=options['expiry'],
-                     fielding=options['fielding'], chadwick=options['chadwick'])
-        # data is good to get here
-        # if year is current year
-        #   reset tables
-        #   update year # might want to rename this insert
+        past_due, exists = get_all_data(year=options['year'], expiry=options['expiry'],
+                                        fielding=options['fielding'], chadwick=options['chadwick'])
+        if past_due is True or exists is False:
+            print "Error with data. Please refetch."
+            sys.exit()
+        elif str(options['year']).strip() == str(year).strip():
+            print "Run insert here."
+            tables = ['batting', 'pitching', 'fielding']
+            if not options['fielding']:
+                tables.pop()
+            for table in tables:
+                reset_table(table=table)  # might want year here too.
+            insert_year(year=str(options['year']), expanded=expanded,
+                        fielding=options['fielding'])
+        else:
+            print "Run update here"
+
         # else:
         #   ensure expanded is True
-        #   check columns
+        #   check columns - run insert if not there
         #   run an update
     else:
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
 
     # concered about non-current years - original data would be deleted. should write an update
-    # update_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
+    # insert_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
     return max_year
 
 
@@ -466,8 +466,8 @@ def main_pseudo():
     for table in ['batting', 'pitching', 'fielding']:
         reset_table(table=table)
     # insert new data
-    # update_year(expanded=options['expanded'], year=options['year'])
-    update_year()
+    # insert_year(expanded=options['expanded'], year=options['year'])
+    insert_year()
 
 
 def ins_table_data(table_data, cols_array, table='batting'):
