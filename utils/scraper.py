@@ -115,7 +115,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     past_due, exists = check_files(year, expiry, fielding=fielding, chadwick=chadwick)
     if past_due is False and exists is True:
         print "Files now up to date."
-    # return past_due, exists
+    return past_due, exists
 
 
 def get_data(url, name):
@@ -145,8 +145,13 @@ def get_data(url, name):
     print "Processing " + name
     br.load_jquery(True)
     # unhide non-qualifiers
-    br.click('input[type="checkbox"]')
-    br.wait_load(10)
+    try:
+        br.click('input[type="checkbox"]')
+        br.wait_load(10)
+    except spynner.SpynnerTimeout:
+        print "timed out."
+        # raise spynner.SpynnerTimeout
+
     # grab the html before changing to csv
 
     with open(html_path, 'w') as f:
@@ -182,7 +187,7 @@ def get_data(url, name):
     try:
         br.destroy_webview()
         br.close()
-    except AttributeError:
+    except spynner.AttributeError:
         print "Spynner problem closing browser."
     # br.close()
     # print "060"
