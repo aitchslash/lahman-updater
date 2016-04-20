@@ -29,6 +29,8 @@ Notes:
 ToDo:
 test cmd line argparse
 
+test past years - may have issues w/ bbref formats (in season vs. archived)
+
 nb, KeyError
 
 need to move 2015 fielding stats
@@ -156,7 +158,6 @@ def get_ids(page, fielding=False):
         all_players_div = soup.select('div[id^all_players_]')
     else:
         all_players_div = soup.find_all('table', id='players_standard_fielding')
-    print len(all_players_div)
     assert len(all_players_div) == 1  # should be one and only one
     tags = all_players_div[0].select('a[href^=/players/]')
 
@@ -266,7 +267,6 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
         if table == 'P':
             # fix Putouts/Pickoffs for P fielding
             header[-1] = 'PK'
-        print "010"
         # read the lines from the csv
         for row in reader:
             name = row['Name']
