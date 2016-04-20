@@ -68,7 +68,7 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     to_check = [] + arms_bats
     assert len(arms_bats) == 6
     gloves = [i for i in f_names if i.find('fielding') > -1]
-    assert len(gloves) == 2  # will be 18
+    assert len(gloves) == 18  # will be 18
     chad_csv = ['chadwick.csv']
 
     if fielding is True:
@@ -160,12 +160,28 @@ def get_data(url, name):
     print "HTML written."
     # convert table to csv on page. Will be contained in only <pre>
     # fielding query ('span[tip$="values"]')[2] # third of 4
+    # for catchers (or fielders in general):
+
     if url.find('fielding') == -1:
         br.runjs("""jQuery('span[tip$="values"]:last').click()""")
         br.wait(5)
     else:
-        br.runjs("""jQuery('span[tip$="values"]:eq(2)').click()""")
-        br.wait(5)
+        # this is nice and specific and should work for all postions, but doesn't.
+        # jq = """jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()"""
+
+        # catchers return extra values
+        if name[-1] != 'c':
+            br.runjs("""jQuery('span[tip$="values"]:eq(2)').click()""")  # old line
+        else:
+            br.runjs("""jQuery('span[tip$="values"]:eq(3)').click()""")  # old line
+
+        # br.runjs("""jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()""")
+
+        '''if br.runjs(query + '.length') > 1:
+            query += "[0]"
+
+        br.runjs(query + ".click()")
+        br.wait(5)'''
 
     soup = BeautifulSoup(br.html, 'html.parser')
     # try this

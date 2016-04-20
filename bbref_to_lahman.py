@@ -29,6 +29,10 @@ Notes:
 ToDo:
 test cmd line argparse
 
+nb, KeyError
+
+need to move 2015 fielding stats
+
 non-current years, write an update - would be excellent to write a data checker here.
 
 ensure file names are consistent main/scraper
@@ -67,12 +71,7 @@ open lahman15 release
 """
 
 import sys
-# import argparse
-# import utils.argparse
-# import utils.scraper
-# import utils
 from utils.argparser import process_args
-# from utils.scraper import check_files, url_maker, get_data, get_biographical, get_all_data
 from utils.scraper import check_files, get_all_data
 import csv
 from bs4 import BeautifulSoup
@@ -145,7 +144,7 @@ def add_mlbamid_master():
     cursor.close()
 
 
-def get_ids(page):
+def get_ids(page, fielding=False):
     """Turn html page into a BeautifulSoup."""
     """Return a dictionary mapping {name:bbref_id}."""
     with open(page, "r") as html:
@@ -153,7 +152,11 @@ def get_ids(page):
 
     name_bbref_dict = {}
     # hope = soup.find('div', {"id": "all_players_standard_pitching"})
-    all_players_div = soup.select('div[id^all_players_]')
+    if fielding is False:
+        all_players_div = soup.select('div[id^all_players_]')
+    else:
+        all_players_div = soup.find_all('table', id='players_standard_fielding')
+    print len(all_players_div)
     assert len(all_players_div) == 1  # should be one and only one
     tags = all_players_div[0].select('a[href^=/players/]')
 
@@ -288,7 +291,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                         st_num = "stint" + str(len(stats_dict[bbref_id]) + 1)
                         stats_dict[bbref_id].update({st_num: row})
 
-                except:
+                except KeyError:  # nb, KeyError new 19/4/16
                     if row['Name'] != 'Name':
                         non_match.append(row['Name'])
 
@@ -453,23 +456,6 @@ def main():
     return max_year
 
 
-def main_pseudo():
-    """Update db with current years stats."""
-    # check if setup has been run - if not error
-    # check db connection and last year updated
-    #
-    # check age of files.  If old, get new data -f flag to force new get
-    # if force == True or os.path.changed file
-    #   get new data - run spynner
-    # else print data still fresh - exit
-    # delete existing data for current year
-    for table in ['batting', 'pitching', 'fielding']:
-        reset_table(table=table)
-    # insert new data
-    # insert_year(expanded=options['expanded'], year=options['year'])
-    insert_year()
-
-
 def ins_table_data(table_data, cols_array, table='batting'):
     """Insert table data for batting or pitching."""
     team_dict = make_team_dict()
@@ -547,7 +533,7 @@ def ins_fielding():
 
     for pos in positions:
         csv_path, html_path = make_paths(pos)
-        pos_data = get_ids(html_path)
+        pos_data = get_ids(html_path, fielding=True)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
         print 'inserting into ' + "fielding " + pos + " ..."
         mydb = pymysql.connect(host, username, password, lahmandb)
@@ -931,10 +917,10 @@ def reset_master():
 def make_paths(position, year=year):
     """Return fielding paths for csv and shtml files."""
     cwd = os.getcwd()
-    csv_path = os.path.join(cwd, "data", "data" + year, "fielding",
-                            "bbref_" + position + "_fielding.csv")
-    shtml_path = os.path.join(cwd, "data", "data" + year, "fielding",
-                              "bbref_" + position + "_fielding.shtml")
+    csv_path = os.path.join(cwd, "data", "data" + year,
+                            "fielding_" + position + ".csv")
+    shtml_path = os.path.join(cwd, "data", "data" + year,
+                              "fielding_" + position + ".shtml")
     return csv_path, shtml_path
 
 
