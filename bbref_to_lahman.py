@@ -33,7 +33,7 @@ test past years - may have issues w/ bbref formats (in season vs. archived)
 
 nb, KeyError
 
-need to move 2015 fielding stats
+need to move 2015 fielding stats - moved now test
 
 non-current years, write an update - would be excellent to write a data checker here.
 
@@ -64,6 +64,11 @@ examine batting stats on bbref to maybe get more
 :   consider getting WAR
 
 remove global for chadwick
+consider grabbing chadwick from the git repo.
+:  might be able to get date as well (prevent unneeded d/l's)
+
+think about how to deal w/ birthState hack to 2 chars
+mexican states.zip is available http://www.baseball-databank.org/files/tables/
 
 finalGame in master not updating.
 
@@ -73,7 +78,7 @@ open lahman15 release
 """
 
 import sys
-from utils.argparser import process_args
+from utils.argparser import process_args, set_default_season
 from utils.scraper import check_files, get_all_data
 import csv
 from bs4 import BeautifulSoup
@@ -85,7 +90,7 @@ import pprint  # nb, just for test prints
 
 people_csv = 'data/data2015/people.csv'
 
-
+'''
 def set_default_season():
     """Return current year (cy) or cy - 1 if off-season."""
     cy = time.strftime("%Y-%m")
@@ -93,7 +98,7 @@ def set_default_season():
     if not int(month) > 3:
         year = str(int(year) - 1)
     return year
-
+'''
 
 year = set_default_season()
 
@@ -414,10 +419,11 @@ def main():
         print "Baseball data only available from 1876 to " + year
         sys.exit()
 
-    if max_year != int(year) and options['ignore'] is False:
+    if max_year != int(options['year']) and options['ignore'] is False:
         print "Preventing overwrite of lahman original data."
         print "Run setup.py to get past years or use --ignore to force update"
         sys.exit()
+
     if options['ignore'] is False:  # put in argparse option for chadwick
         past_due, exists = check_files(year=options['year'],
                                        expiry=options['expiry'],
