@@ -60,6 +60,7 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     """Intended to be run as import from main dir.  Paths are affected."""
     past_due, exists = False, True
     data_dir = os.path.join('', 'data', 'data' + str(year))
+    # print data_dir
     if os.path.isdir(data_dir) is False:
         print "Data dir for " + str(year) + " is missing."
         return True, False  # past_due, exists  # nb, uglyish
@@ -68,6 +69,7 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     to_check = [] + arms_bats
     assert len(arms_bats) == 6
     gloves = [i for i in f_names if i.find('fielding') > -1]
+    # print len(gloves)
     assert len(gloves) == 18  # will be 18
     chad_csv = ['chadwick.csv']
 
