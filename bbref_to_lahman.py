@@ -356,7 +356,7 @@ def insert_year(expanded=True, year=year, fielding=False):
     id_set.update(pitching_dict.keys())
     id_set.update(batting_dict.keys())
     rookie_set = set(find_rookies(id_set))
-    populate_master(rookie_set)
+    populate_master(rookie_set, expanded=expanded)
     ins_table_data(batting_dict, batting_cols, table='batting')
     ins_table_data(pitching_dict, pitching_cols, table='pitching')
     if fielding is True:
