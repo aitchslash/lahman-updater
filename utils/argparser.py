@@ -3,11 +3,21 @@
 
 import argparse
 import sys
+import time
+
+
+def set_default_season():
+    """Return current year (cy) or cy - 1 if off-season."""
+    cy = time.strftime("%Y-%m")
+    year, month = cy.split("-")
+    if int(month) <= 3:
+        year = str(int(year) - 1)
+    return year
 
 
 def process_args(args):
     """Test."""
-    # year = time.time yadda yadda
+    year = set_default_season()
     # check lower bound for baseball data
     # throw value in -y flag
     # need file name too
@@ -28,7 +38,7 @@ def process_args(args):
                         type=int,
                         # range works but makes help ugly.
                         # choices=xrange(1900, 2017),  # nb, year + 1 goes here
-                        default=2016,
+                        default=int(year),
                         help='Year of data to get')
 
     parser.add_argument('-d',
