@@ -68,12 +68,13 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
     to_check = [] + arms_bats
     assert len(arms_bats) == 6
-    gloves = [i for i in f_names if i.find('fielding') > -1]
-    # print len(gloves)
-    assert len(gloves) == 18  # will be 18
+
     chad_csv = ['chadwick.csv']
 
     if fielding is True:
+        gloves = [i for i in f_names if i.find('fielding') > -1]
+        # print len(gloves)
+        assert len(gloves) == 18  # will be 18
         to_check += gloves
     if chadwick is True:
         assert os.path.isfile(os.path.join(data_dir, 'chadwick.csv'))
@@ -109,7 +110,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     name_url_pairs = url_maker(year=year, fielding=fielding)
     # loop over tuples and get_dats
     for pair in name_url_pairs:
-        get_data(pair[1], pair[0])
+        get_data(pair[1], pair[0], year)
     # either do chadwick or not
     if chadwick is True:
         get_biographical()
@@ -120,7 +121,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     return past_due, exists
 
 
-def get_data(url, name):
+def get_data(url, name, year):
     """Grab one csv and one html from bbref url and write to data folder."""
     """Will overwrite existing files.
     Runtime is about 30sec per page.
@@ -129,7 +130,7 @@ def get_data(url, name):
     # make the paths for the files
     # and the directory if needed
     # cwd = os.path.getcwd()
-    stats_dir = os.path.join('', 'data', 'data' + year)
+    stats_dir = os.path.join('', 'data', 'data' + str(year))
     if os.path.isdir(stats_dir) is False:
         print "Need to make directory."
         os.mkdir(stats_dir)
