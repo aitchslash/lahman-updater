@@ -23,6 +23,8 @@ Notes:
 10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
 11) Rookie missing from Chadwick (34 as of Apr 13/16)
 :   SELECT * FROM master WHERE bbrefID IS NULL
+12) Assumes you are using lahman 2014 version.  When tested on 2012 differnces
+:   in structure and data types both threw errors.
 
 
 
@@ -30,6 +32,8 @@ ToDo:
 test cmd line argparse
 
 test past years - may have issues w/ bbref formats (in season vs. archived)
+
+curr_year or def_year is better than year.  Change it.
 
 nb, KeyError
 
@@ -398,7 +402,7 @@ def main():
         cursor = mydb.cursor()
         statement = 'SELECT MAX(yearID) from batting'
         cursor.execute(statement)
-        max_year = cursor.fetchone()[0]
+        latest_year = cursor.fetchone()[0]
         mydb.commit()
         cursor.close()
     except:
@@ -419,7 +423,7 @@ def main():
         print "Baseball data only available from 1876 to " + year
         sys.exit()
 
-    if max_year != int(options['year']) and options['ignore'] is False:
+    if latest_year != int(options['year']) and options['ignore'] is False:
         print "Preventing overwrite of lahman original data."
         print "Run setup.py to get past years or use --ignore to force update"
         sys.exit()
@@ -447,6 +451,9 @@ def main():
                 reset_table(table=table)  # might want year here too.
             insert_year(year=str(options['year']), expanded=expanded,
                         fielding=options['fielding'])
+        elif latest_year < int(options['year']):  # could insist that it's only one year more.
+            insert_year(year=str(options['year']), expanded=expanded,
+                        fielding=options['fielding'])
         else:
             print "Run update here"
 
@@ -459,7 +466,7 @@ def main():
 
     # concered about non-current years - original data would be deleted. should write an update
     # insert_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
-    return max_year
+    return latest_year
 
 
 def ins_table_data(table_data, cols_array, table='batting'):
