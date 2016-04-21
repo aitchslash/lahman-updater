@@ -104,7 +104,7 @@ def set_default_season():
     return year
 '''
 
-year = set_default_season()
+cur_season = set_default_season()
 
 
 def get_db_login(path='data/db_details.txt'):
@@ -226,7 +226,7 @@ def make_people_dict(people_csv):
 
         for row in reader:
             # limit dictionary to those youger than 50
-            if row['birthYear'] and int(row['birthYear']) > int(year) - 50:
+            if row['birthYear'] and int(row['birthYear']) > int(cur_season) - 50:
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
     return people_dict
@@ -245,8 +245,8 @@ def fix_mismatches(stats_dict_maker):
                    FROM master
                    WHERE birthYear > %s AND
                    DATE(finalGame) > "%s-1-1" AND
-                   playerID != bbrefID''' % (str(int(year) - 50),
-                                             str(int(year) - 5))
+                   playerID != bbrefID''' % (str(int(cur_season) - 50),
+                                             str(int(cur_season) - 5))
         cursor.execute(statement)
         mismatches = cursor.fetchall()
 
@@ -337,7 +337,7 @@ def make_team_dict():
     return team_dict
 
 
-def insert_year(expanded=True, year=year, fielding=False):
+def insert_year(year=cur_season, expanded=True, fielding=False):
     """Update lahmandb with current year stats."""
     """Checks data files in place.  Assumes no existing data."""
     bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
@@ -355,7 +355,7 @@ def insert_year(expanded=True, year=year, fielding=False):
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # a, pitching_dict, c = expand_p_test()
     if expanded is True:
-        pitching_dict = expand_pitch_stats(pitching_dict)
+        pitching_dict = expand_pitch_stats(pitching_dict, year)
     # team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
@@ -365,11 +365,11 @@ def insert_year(expanded=True, year=year, fielding=False):
     id_set.update(pitching_dict.keys())
     id_set.update(batting_dict.keys())
     rookie_set = set(find_rookies(id_set))
-    populate_master(rookie_set, expanded=expanded)
-    ins_table_data(batting_dict, batting_cols, table='batting')
-    ins_table_data(pitching_dict, pitching_cols, table='pitching')
+    populate_master(rookie_set, year, expanded=expanded)
+    ins_table_data(batting_dict, batting_cols, year, table='batting')
+    ins_table_data(pitching_dict, pitching_cols, year, table='pitching')
     if fielding is True:
-        ins_fielding()
+        ins_fielding(year)
     # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
     return
 
@@ -419,8 +419,8 @@ def main():
             print "Unable to extract login details."
             print "Please check your path."
         sys.exit()
-    if not 1876 <= int(options['year']) <= int(year):
-        print "Baseball data only available from 1876 to " + year
+    if not 1876 <= int(options['year']) <= int(cur_season):
+        print "Baseball data only available from 1876 to " + cur_season
         sys.exit()
 
     if latest_year != int(options['year']) and options['ignore'] is False:
@@ -442,7 +442,7 @@ def main():
         if past_due is True or exists is False:
             print "Error with data. Please refetch."
             sys.exit()
-        elif str(options['year']).strip() == str(year).strip():
+        elif str(options['year']).strip() == str(cur_season).strip():
             print "Run insert here."
             tables = ['batting', 'pitching', 'fielding']
             if not options['fielding']:
@@ -451,6 +451,7 @@ def main():
                 reset_table(table=table)  # might want year here too.
             insert_year(year=str(options['year']), expanded=expanded,
                         fielding=options['fielding'])
+        # if latest data is earlier than the year we're working with there's no data
         elif latest_year < int(options['year']):  # could insist that it's only one year more.
             insert_year(year=str(options['year']), expanded=expanded,
                         fielding=options['fielding'])
@@ -469,7 +470,7 @@ def main():
     return latest_year
 
 
-def ins_table_data(table_data, cols_array, table='batting'):
+def ins_table_data(table_data, cols_array, year, table='batting'):
     """Insert table data for batting or pitching."""
     team_dict = make_team_dict()
     if table == 'batting':
@@ -481,7 +482,7 @@ def ins_table_data(table_data, cols_array, table='batting'):
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for key in table_data.keys():
-        statements = insert_player(key, table_data, team_dict, cols_array)
+        statements = insert_player(key, table_data, team_dict, cols_array, year)
         for statement in statements:
             cursor.execute(statement)
     mydb.commit()
@@ -490,7 +491,7 @@ def ins_table_data(table_data, cols_array, table='batting'):
 
 
 # key will be bbref_dict.keys() i.e. bbref_id
-def insert_batter(key, stats_dict, team_dict, fields_array):
+def insert_batter(key, stats_dict, team_dict, fields_array, year):
     """Create insertion string(s) batting."""
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
@@ -535,7 +536,7 @@ def insert_batter(key, stats_dict, team_dict, fields_array):
     return insert_strings
 
 
-def ins_fielding():
+def ins_fielding(year):
     """Insert fielding stats into db."""
     positions = ['P', 'C', '1B', '2B', '3B', 'SS', 'RF', 'LF', 'CF']
 
@@ -552,7 +553,7 @@ def ins_fielding():
         mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         for key in pos_dict.keys():
-            statements = insert_fielder(key, pos_dict, team_dict, cols, pos)
+            statements = insert_fielder(key, year, pos_dict, team_dict, cols, pos)
             for statement in statements:
                 cursor.execute(statement)
         mydb.commit()
@@ -561,7 +562,7 @@ def ins_fielding():
     return
 
 
-def insert_fielder(key, stats_dict, team_dict, fields_array, position):
+def insert_fielder(key, year, stats_dict, team_dict, fields_array, position):
     """Make insert string for fielding."""
     stats = stats_dict[key]
     stints = []
@@ -610,7 +611,7 @@ def insert_fielder(key, stats_dict, team_dict, fields_array, position):
     return insert_strings
 
 
-def insert_pitcher(key, stats_dict, team_dict, fields_array):
+def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
     """Create insertion string(s)."""
     """Returns an array of sql commands to be executed."""
     stats = stats_dict[key]
@@ -682,7 +683,7 @@ def expand_pitch_stats_fork(pitching_dict):
 '''
 
 
-def expand_pitch_stats(pitching_dict):
+def expand_pitch_stats(pitching_dict, year=cur_season):
     """Add new stats to pitching_dict."""
     arms_exp_html = os.path.join('', 'data', 'data' + year, 'arms_extra.shtml')
     assert os.path.isfile(arms_exp_html)
@@ -712,7 +713,7 @@ def expand_pitch_stats(pitching_dict):
     return sd
 
 
-def reset_table(table='batting', year=year):
+def reset_table(table='batting', year=cur_season):
     """Clear out all entries w/ yearID = year."""
     """Set table='pitching' to reset that table"""
     mydb = pymysql.connect(host, username, password, lahmandb)
@@ -747,7 +748,7 @@ def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
     return rookie_list
 
 
-def populate_master(rookie_set, expanded=True):
+def populate_master(rookie_set, year, expanded=True):
     """Insert rookies into master."""
     """Expanded will insert mlb adv med ID into master."""
     ppl_dict = make_people_dict(people_csv)
@@ -927,7 +928,7 @@ def reset_master():
     cursor.close()
 
 
-def make_paths(position, year=year):
+def make_paths(position, year=cur_season):
     """Return fielding paths for csv and shtml files."""
     cwd = os.getcwd()
     csv_path = os.path.join(cwd, "data", "data" + year,
