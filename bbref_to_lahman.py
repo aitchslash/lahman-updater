@@ -428,45 +428,50 @@ def main():
         print "Run setup.py to get past years or use --ignore to force update"
         sys.exit()
 
-    if options['ignore'] is False:  # put in argparse option for chadwick
+    if options['ignore'] is False:
         past_due, exists = check_files(year=options['year'],
                                        expiry=options['expiry'],
                                        fielding=options['fielding'],
                                        chadwick=options['chadwick'])
-    if options['ignore'] or past_due or not exists:
+        if past_due is False and exists is True:
+            print "Data is fresh. Use --ignore to force refresh or change --expiry"
+            sys.exit()
+
+    # if forced, current year is expired, or data missing: get data
+    if options['ignore'] or (past_due and str(options['year']) == cur_season) or not exists:
         print "Getting data from baseball-reference."
         print "Spynner windows may open."
         print "Ignore uncaught AttributeError"
         past_due, exists = get_all_data(year=options['year'], expiry=options['expiry'],
                                         fielding=options['fielding'], chadwick=options['chadwick'])
+        # check data retrevial went OK.
         if past_due is True or exists is False:
             print "Error with data. Please refetch."
             sys.exit()
-        elif str(options['year']).strip() == str(cur_season).strip():
-            print "Run insert here."
-            tables = ['batting', 'pitching', 'fielding']
-            if not options['fielding']:
-                tables.pop()
-            for table in tables:
-                reset_table(table=table)  # might want year here too.
-            insert_year(year=str(options['year']), expanded=expanded,
-                        fielding=options['fielding'])
-        # if latest data is earlier than the year we're working with there's no data
-        elif latest_year < int(options['year']):  # could insist that it's only one year more.
-            insert_year(year=str(options['year']), expanded=expanded,
-                        fielding=options['fielding'])
-        else:
-            print "Run update here"
+
+    # OK, data gotten if needed.
+    # if current year, run insert
+    if str(options['year']).strip() == str(cur_season).strip():
+        print "Run insert here."
+        tables = ['batting', 'pitching', 'fielding']
+        if not options['fielding']:
+            tables.pop()
+        for table in tables:
+            reset_table(table=table, year=cur_season)
+        insert_year(year=str(options['year']), expanded=expanded,
+                    fielding=options['fielding'])
+    # if latest data is earlier than the year we're working with database is empty there.
+    elif latest_year < int(options['year']):  # could insist that it's only one year more.
+        insert_year(year=str(options['year']), expanded=expanded,
+                    fielding=options['fielding'])
+    # else year earlier and data in both files and database - update with expanded.
+    else:
+        print "Run update here"
 
         # else:
         #   ensure expanded is True
         #   check columns - run insert if not there
         #   run an update
-    else:
-        print "Data is fresh. Use --ignore to force refresh or change --expiry"
-
-    # concered about non-current years - original data would be deleted. should write an update
-    # insert_year(expanded=options['expanded'], year=options['year'], fielding=options['fielding'])
     return latest_year
 
 
@@ -727,7 +732,14 @@ def reset_table(table='batting', year=cur_season):
 def reset_db():
     """Reset database to 2014."""
     """For testing. Leaves in expanded stats."""
-    for year in ['2015', '2016']:
+    mydb = pymysql.connect(host, username, password, lahmandb)
+    cursor = mydb.cursor()
+    statement = 'SELECT MAX(yearID) from batting'
+    cursor.execute(statement)
+    latest_year = cursor.fetchone()[0]
+    mydb.commit()
+    cursor.close()
+    for year in range(2015, int(latest_year) + 1):
         for table in ['batting', 'pitching', 'fielding']:
             reset_table(table=table, year=year)
     reset_master()
