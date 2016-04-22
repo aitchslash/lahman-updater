@@ -398,13 +398,7 @@ def main():
     print type(username)
     '''
     try:
-        mydb = pymysql.connect(host, username, password, lahmandb)
-        cursor = mydb.cursor()
-        statement = 'SELECT MAX(yearID) from batting'
-        cursor.execute(statement)
-        latest_year = cursor.fetchone()[0]
-        mydb.commit()
-        cursor.close()
+        latest_year = find_latest_year()
     except:
         print "Error connecting to database."
         # check db path is file
@@ -428,17 +422,18 @@ def main():
         print "Run setup.py to get past years or use --ignore to force update"
         sys.exit()
 
-    if options['ignore'] is False:
-        past_due, exists = check_files(year=options['year'],
-                                       expiry=options['expiry'],
-                                       fielding=options['fielding'],
-                                       chadwick=options['chadwick'])
-        if past_due is False and exists is True:
-            print "Data is fresh. Use --ignore to force refresh or change --expiry"
-            sys.exit()
+    # if options['ignore'] is False:
+    past_due, exists = check_files(year=options['year'],
+                                   expiry=options['expiry'],
+                                   fielding=options['fielding'],
+                                   chadwick=options['chadwick'])
+    if past_due is False and exists is True:
+        print "Data is fresh. Use --ignore to force refresh or change --expiry"
+        sys.exit()
 
-    # if forced, current year is expired, or data missing: get data
-    if options['ignore'] or (past_due and str(options['year']) == cur_season) or not exists:
+    # if forced and this year, current year is expired, or data missing: get data
+    if ((options['ignore'] and str(options['year']) == cur_season) or
+       (past_due and str(options['year']) == cur_season) or not exists):
         print "Getting data from baseball-reference."
         print "Spynner windows may open."
         print "Ignore uncaught AttributeError"
@@ -729,9 +724,8 @@ def reset_table(table='batting', year=cur_season):
     cursor.close()
 
 
-def reset_db():
-    """Reset database to 2014."""
-    """For testing. Leaves in expanded stats."""
+def find_latest_year():
+    """Return latest year the db has batting data."""
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = 'SELECT MAX(yearID) from batting'
@@ -739,6 +733,13 @@ def reset_db():
     latest_year = cursor.fetchone()[0]
     mydb.commit()
     cursor.close()
+    return latest_year
+
+
+def reset_db():
+    """Reset database to 2014."""
+    """For testing. Leaves in expanded stats."""
+    latest_year = find_latest_year()
     for year in range(2015, int(latest_year) + 1):
         for table in ['batting', 'pitching', 'fielding']:
             reset_table(table=table, year=year)
