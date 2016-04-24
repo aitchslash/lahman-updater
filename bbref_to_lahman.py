@@ -40,16 +40,6 @@ import pprint  # nb, just for test prints
 
 people_csv = 'data/data2015/people.csv'
 
-'''
-def set_default_season():
-    """Return current year (cy) or cy - 1 if off-season."""
-    cy = time.strftime("%Y-%m")
-    year, month = cy.split("-")
-    if not int(month) > 3:
-        year = str(int(year) - 1)
-    return year
-'''
-
 cur_season = set_default_season()
 
 
@@ -336,16 +326,6 @@ def main():
         print str(option) + ': ' + str(options[option])
     '''
 
-    '''
-    print lahmandb
-    print type(lahmandb)
-    print host
-    print type(host)
-    print password
-    print type(password)
-    print username
-    print type(username)
-    '''
     try:
         latest_year = find_latest_year()
     except:
@@ -610,26 +590,6 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
     if empty_warning:  # nb, can likely get rid of this
         pprint.pprint(empty_warning)'''
     return insert_strings
-
-
-'''
-def expand_pitch_stats_fork(pitching_dict):
-    """Add expanded stats to pitching_dict."""
-    ids = get_ids(arms_extra_html)
-    # csv has len==30, same as default
-    new_sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
-    assert new_sd.keys() == pitching_dict.keys()
-    # unpack stints
-    stints = []
-    for p_id in new_sd.keys():
-        if len(new_sd[p_id]) > 10:  # only one stint
-            stints.append(new_sd[p_id])
-        else:  # more than one stint
-            for stint in new_sd[p_id].keys():
-                stints.append(new_sd[p_id][stint])
-        for stint in stints:
-            pitching_dict[p_id]
-'''
 
 
 def expand_pitch_stats(pitching_dict, year=cur_season):
