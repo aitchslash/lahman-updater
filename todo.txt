@@ -1,0 +1,47 @@
+
+
+
+ToDo:
+*** Reset_master is commented out for testing (inserting rookies takes forever) ***
+
+test cmd line argparse
+
+test past years - may have issues w/ bbref formats (in season vs. archived)
+:   need to write an update for expanded stats
+:   non-current years, write an update - would be excellent to write a data checker here.
+
+ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
+:   put an assertion in get_ids - should deal w/ it better
+
+look into context managers vs. pymysql - might use to supress spynner's AttributeError
+: https://docs.python.org/2.5/whatsnew/pep-343.html
+: http://jessenoller.com/2009/02/03/
+        get-with-the-program-as-contextmanager-completely-different/
+: http://stackoverflow.com/questions/1107297/
+        looking-for-a-more-pythonic-way-to-access-the-database
+
+move testers and resets to utils
+
+might want to break into a setup.py and a update.py
+
+delete old code and print statements
+improve comments and doc strings
+update readme
+
+extra code in rookie_deets from when it updated
+
+examine batting stats on bbref to maybe get more
+:   consider getting WAR
+
+remove global for chadwick
+consider grabbing chadwick from the git repo.
+:  might be able to get date as well (prevent unneeded d/l's)
+
+think about how to deal w/ birthState hack to 2 chars
+mexican states.zip is available http://www.baseball-databank.org/files/tables/
+
+finalGame in master not updating.
+
+open lahman15 release
+:   check inf(inity extracted) pitching
+:   check teamID's for Chicago
