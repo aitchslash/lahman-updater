@@ -29,6 +29,8 @@ Notes:
 
 
 ToDo:
+*** Reset_master is commented out for testing (inserting rookies takes forever) ***
+
 test cmd line argparse
 
 test past years - may have issues w/ bbref formats (in season vs. archived)
@@ -354,18 +356,21 @@ def insert_year(year=cur_season, expanded=True, fielding=False):
     assert os.path.isfile(arms_csv)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # a, pitching_dict, c = expand_p_test()
-    if expanded is True:
-        pitching_dict = expand_pitch_stats(pitching_dict, year)
-    # team_dict = make_team_dict()
     batting_cols = get_columns('batting')
     pitching_cols = get_columns('pitching')
     # if pitching cols need to be added i.e. != 40 or == 30
-    #   add_pitching_cols
+    if expanded is True:
+        if len(pitching_cols) == 30:
+            add_pitching_columns()
+            pitching_cols = get_columns('pitching')
+        pitching_dict = expand_pitch_stats(pitching_dict, year)
+    # team_dict = make_team_dict()
     id_set = set()
     id_set.update(pitching_dict.keys())
     id_set.update(batting_dict.keys())
     rookie_set = set(find_rookies(id_set))
     populate_master(rookie_set, year, expanded=expanded)
+    print "Gathering rookie data may take a while..."
     ins_table_data(batting_dict, batting_cols, year, table='batting')
     ins_table_data(pitching_dict, pitching_cols, year, table='pitching')
     if fielding is True:
@@ -427,7 +432,7 @@ def main():
                                    expiry=options['expiry'],
                                    fielding=options['fielding'],
                                    chadwick=options['chadwick'])
-    if past_due is False and exists is True:
+    if past_due is False and exists is True and options['ignore'] is False:
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
         sys.exit()
 
@@ -739,11 +744,32 @@ def find_latest_year():
 def reset_db():
     """Reset database to 2014."""
     """For testing. Leaves in expanded stats."""
+
     latest_year = find_latest_year()
     for year in range(2015, int(latest_year) + 1):
         for table in ['batting', 'pitching', 'fielding']:
             reset_table(table=table, year=year)
-    reset_master()
+    # reset_master()  # FOR TESTING this is commented out.
+
+    exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
+                     'ERAplus', 'FIP', 'PA', 'SOperW']
+
+    if 'FIP' in get_columns('pitching'):
+        print "Dropping expanded pitching stats."
+        print "Dropping mlbID from master"
+        statement = "ALTER TABLE pitching "
+        for col in exp_p_columns:
+            statement += "DROP COLUMN {}, ".format(col)
+        statement = statement[:-2]
+        statement2 = "ALTER TABLE master DROP COLUMN mlbamID"
+        mydb = pymysql.connect(host, username, password, lahmandb)
+        cursor = mydb.cursor()
+        cursor.execute(statement)
+        mydb.commit()
+        cursor.execute(statement2)
+        mydb.commit()
+        cursor.close()
+
     print "database reset to 2014."
 
 
@@ -758,6 +784,8 @@ def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
         result = cursor.fetchone()
         if not result:
             rookie_list.append(id_)
+    mydb.commit()
+    cursor.close()
     return rookie_list
 
 
@@ -931,14 +959,16 @@ def update_master(rookie_list):
 
 def reset_master():
     """Delete new entries."""
-    mydb = pymysql.connect(host, username, password, lahmandb)
-    cursor = mydb.cursor()
-    statement = """DELETE FROM master
-                   where finalGame BETWEEN '2015-12-31 00:00:00' and
-                   '2015-12-31 23:59:59'"""
-    cursor.execute(statement)
-    mydb.commit()
-    cursor.close()
+    latest_year = find_latest_year()
+    for year in range(2015, latest_year + 1):
+        mydb = pymysql.connect(host, username, password, lahmandb)
+        cursor = mydb.cursor()
+        statement = """DELETE FROM master
+                       where finalGame BETWEEN '{}-12-31 00:00:00' and
+                       '{}-12-31 23:59:59'""".format(year, year)
+        cursor.execute(statement)
+        mydb.commit()
+        cursor.close()
 
 
 def make_paths(position, year=cur_season):
@@ -953,3 +983,4 @@ def make_paths(position, year=cur_season):
 
 if __name__ == '__main__':
     main()
+    # pass
