@@ -25,62 +25,6 @@ Notes:
 :   SELECT * FROM master WHERE bbrefID IS NULL
 12) Assumes you are using lahman 2014 version.  When tested on 2012 differnces
 :   in structure and data types both threw errors.
-
-
-
-ToDo:
-*** Reset_master is commented out for testing (inserting rookies takes forever) ***
-
-test cmd line argparse
-
-test past years - may have issues w/ bbref formats (in season vs. archived)
-
-curr_year or def_year is better than year.  Change it.
-
-nb, KeyError
-
-need to move 2015 fielding stats - moved now test
-
-non-current years, write an update - would be excellent to write a data checker here.
-
-ensure file names are consistent main/scraper
-ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
-:   put an assertion in get_ids - should deal w/ it better
-
-look into context managers vs. pymysql
-: https://docs.python.org/2.5/whatsnew/pep-343.html
-: http://jessenoller.com/2009/02/03/
-        get-with-the-program-as-contextmanager-completely-different/
-: http://stackoverflow.com/questions/1107297/
-        looking-for-a-more-pythonic-way-to-access-the-database
-
-move testers and resets to utils
-
-might want to break into a setup.py and a update.py
-
-delete old code and print statements
-improve comments and doc strings
-update readme
-
-extra code in rookie_deets from when it updated
-
-get old data and update w/ expanded stats (e.g. last 20yrs)
-
-examine batting stats on bbref to maybe get more
-:   consider getting WAR
-
-remove global for chadwick
-consider grabbing chadwick from the git repo.
-:  might be able to get date as well (prevent unneeded d/l's)
-
-think about how to deal w/ birthState hack to 2 chars
-mexican states.zip is available http://www.baseball-databank.org/files/tables/
-
-finalGame in master not updating.
-
-open lahman15 release
-:   check inf(inity extracted) pitching
-:   check teamID's for Chicago
 """
 
 import sys
@@ -302,7 +246,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                         st_num = "stint" + str(len(stats_dict[bbref_id]) + 1)
                         stats_dict[bbref_id].update({st_num: row})
 
-                except KeyError:  # nb, KeyError new 19/4/16
+                except:
                     if row['Name'] != 'Name':
                         non_match.append(row['Name'])
 
@@ -312,7 +256,7 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
 
 
 def get_columns(table):
-    """Get column names from Lahman table (pitching/batting)."""
+    """Get column names from Lahman table."""
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = "SHOW columns FROM %s" % (table)
