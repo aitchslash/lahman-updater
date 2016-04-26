@@ -28,15 +28,16 @@ Notes:
 """
 
 import sys
-from utils.argparser import process_args, set_default_season
-from utils.scraper import check_files, get_all_data
 import csv
-from bs4 import BeautifulSoup
-import pymysql
 import os
 import urllib2
 import time
 import pprint  # nb, just for test prints
+from bs4 import BeautifulSoup
+import pymysql
+from utils.argparser import process_args, set_default_season
+from utils.scraper import check_files, get_all_data
+
 
 people_csv = 'data/data2015/people.csv'
 
