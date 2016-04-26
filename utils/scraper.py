@@ -206,8 +206,8 @@ def get_data(url, name, year):
     try:
         br.destroy_webview()
         br.close()
-    except spynner.AttributeError:
-        print "Spynner problem closing browser."
+    except AttributeError, e:
+        print "Spynner problem closing browser." + e
     # br.close()
     # print "060"
     return None
