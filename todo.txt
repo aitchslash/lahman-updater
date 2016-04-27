@@ -31,7 +31,10 @@ update readme
 extra code in rookie_deets from when it updated
 
 examine batting stats on bbref to maybe get more
-:   consider getting WAR
+:   consider getting WAR - player value
+:	BAbip, OPS, SLG, OPS+ - advanced batting
+: 	line drive % - ratios
+:	can't find vs R, vs L
 
 remove global for chadwick
 consider grabbing chadwick from the git repo.
