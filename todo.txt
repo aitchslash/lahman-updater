@@ -4,7 +4,11 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
+just flipped order of decorators.
+
 test cmd line argparse
+
+consider making unpack stints into a f(x)
 
 test past years - may have issues w/ bbref formats (in season vs. archived)
 :   need to write an update for expanded stats
@@ -23,6 +27,7 @@ look into context managers vs. pymysql - might use to supress spynner's Attribut
 move testers and resets to utils
 
 might want to break into a setup.py and a update.py
+:	would want to put all alter table add column to setup f(x)
 
 delete old code and print statements
 improve comments and doc strings
