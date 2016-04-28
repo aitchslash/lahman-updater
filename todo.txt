@@ -1,18 +1,9 @@
-
-
-
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-just flipped order of decorators.
+clean up unpack_stints chaff after testing
 
-test cmd line argparse
-
-consider making unpack stints into a f(x)
-
-test past years - may have issues w/ bbref formats (in season vs. archived)
-:   need to write an update for expanded stats
-:   non-current years, write an update - would be excellent to write a data checker here.
+make inserts for teams, playoffs, all-star etc.
 
 ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
