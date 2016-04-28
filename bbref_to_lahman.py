@@ -189,9 +189,14 @@ def fix_mismatches(stats_dict_maker):
 
         for mm in mismatches:
             if mm[1] in stats_dict.keys():
+                # print mm
                 stats_dict[mm[0]] = stats_dict[mm[1]]
+                # print stats_dict[mm[1]]
                 print "bbrefID changed to lahman: ",
-                print stats_dict[mm[0]]['Name']
+                if len(stats_dict[mm[0]]) > 10:
+                    print stats_dict[mm[0]]['Name']
+                else:
+                    print stats_dict[mm[0]]['stint1']['Name']
                 del stats_dict[mm[1]]
 
         cursor.close()
@@ -199,8 +204,8 @@ def fix_mismatches(stats_dict_maker):
     return inner
 
 
-@fix_csv
 @fix_mismatches
+@fix_csv
 def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
     """Make dictionary mapping bbrefID (as key) to extracted stats (values)."""
     """multiple teams stats are nested as stints"""
@@ -274,20 +279,20 @@ def make_team_dict():
     return team_dict
 
 
-def insert_year(year=cur_season, expanded=True, fielding=False):
-    """Update lahmandb with current year stats."""
+def insert_year(year=cur_season, expanded=True, fielding=False, action='insert'):
+    """Update/Insert lahmandb with given year stats."""
     """Checks data files in place.  Assumes no existing data."""
-    bats_html = os.path.join('', 'data', 'data' + year, 'bats.shtml')
+    bats_html = os.path.join('', 'data', 'data' + str(year), 'bats.shtml')
     assert os.path.isfile(bats_html)
     ids = get_ids(bats_html)
-    arms_html = os.path.join('', 'data', 'data' + year, 'arms.shtml')
+    arms_html = os.path.join('', 'data', 'data' + str(year), 'arms.shtml')
     assert os.path.isfile(arms_html)
     p_ids = get_ids(arms_html)
-    bats_csv = os.path.join('', 'data', 'data' + year, 'bats.csv')
+    bats_csv = os.path.join('', 'data', 'data' + str(year), 'bats.csv')
     assert os.path.isfile(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     # old lines commented out, might be useful if not adding expanded data
-    arms_csv = os.path.join('', 'data', 'data' + year, 'arms.csv')
+    arms_csv = os.path.join('', 'data', 'data' + str(year), 'arms.csv')
     assert os.path.isfile(arms_csv)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # a, pitching_dict, c = expand_p_test()
@@ -303,19 +308,83 @@ def insert_year(year=cur_season, expanded=True, fielding=False):
     id_set = set()
     id_set.update(pitching_dict.keys())
     id_set.update(batting_dict.keys())
-    rookie_set = set(find_rookies(id_set))
-    populate_master(rookie_set, year, expanded=expanded)
-    print "Gathering rookie data may take a while..."
-    ins_table_data(batting_dict, batting_cols, year, table='batting')
-    ins_table_data(pitching_dict, pitching_cols, year, table='pitching')
-    if fielding is True:
+
+    if action == 'insert':
+        rookie_set = set(find_rookies(id_set))
+        populate_master(rookie_set, year, expanded=expanded)
+        print "Gathering rookie data may take a while..."
+        add_table_data = ins_table_data
+    elif action == 'update':
+        add_table_data = update_table_data
+
+    # this 'if' block will be unneccessary when expanded batting is added
+    if action == 'insert':
+        add_table_data(batting_dict, batting_cols, year, table='batting')
+
+    add_table_data(pitching_dict, pitching_cols, year, table='pitching')
+
+    if fielding is True and action == 'insert':
         ins_fielding(year)
     # batting_dict, team_dict, batting_cols, pitching_dict, pitching_cols
     return
 
 
+def test_utd(year):
+    """Test."""
+    arms_html = os.path.join('', 'data', 'data' + year, 'arms.shtml')
+    arms_csv = os.path.join('', 'data', 'data' + year, 'arms.csv')
+    pitching_cols = get_columns('pitching')
+    p_ids = get_ids(arms_html)
+    pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
+    pitching_dict = expand_pitch_stats(pitching_dict, year)
+    us = update_table_data(pitching_dict, pitching_cols, year, 'pitching')
+    print us
+    return us
+
+
+def update_table_data(stats_dict, columns, year, table):
+    """Update lahmandb with expanded stats."""
+    exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
+                     'ERAplus', 'FIP', 'PA', 'SOperW']
+    mydb = pymysql.connect(host, username, password, lahmandb)
+    cursor = mydb.cursor()
+    for key in stats_dict.keys():
+
+        # test_key = 'priceda01'
+
+        # unpack stints
+        stats = stats_dict[key]
+        # print stats
+        stints = []
+        if len(stats) > 10:  # only one stint
+            stats['stint'] = 1
+            stints.append(stats)
+        else:
+            for stint_key in stats.keys():
+                stats[stint_key]['stint'] = str(stint_key[-1])
+                stints.append(stats[stint_key])
+        # print "stints"
+        # return stints
+
+        for stint in stints:
+            update_string = "UPDATE {} SET ".format(table)
+            for column in exp_p_columns:
+                stat = stint.get(column, 'NULL')  # zero K's -> '' for K/BB
+                if not stat:
+                    stat = 'NULL'
+                update_string += column + '=' + str(stat) + ', '
+            update_string = update_string[:-2]  # strip off trailing comma
+            update_string += " WHERE playerID = '{}' AND yearID = {}".format(key, year)
+            update_string += " AND stint = {}".format(stint['stint'])
+            # print update_string
+            cursor.execute(update_string)
+    mydb.commit()
+    cursor.close()
+    # return update_string
+
+
 def main():
-    """Testing cmd line getter."""
+    """Do the thing, whatever that may be."""
     options = process_args(sys.argv[1:])
     # toggle orthodox/expanded
     if options['orthodox'] is True:
@@ -386,12 +455,14 @@ def main():
         insert_year(year=str(options['year']), expanded=expanded,
                     fielding=options['fielding'])
     # if latest data is earlier than the year we're working with database is empty there.
+    # could merge this into prior 'if' statement, but want to ensure delete/reset doesn't do harm.
     elif latest_year < int(options['year']):  # could insist that it's only one year more.
         insert_year(year=str(options['year']), expanded=expanded,
                     fielding=options['fielding'])
     # else year earlier and data in both files and database - update with expanded.
     else:
         print "Run update here"
+        insert_year(year=options['year'], expanded=True, fielding=False, action='update')
 
         # else:
         #   ensure expanded is True
@@ -595,10 +666,10 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
 
 def expand_pitch_stats(pitching_dict, year=cur_season):
     """Add new stats to pitching_dict."""
-    arms_exp_html = os.path.join('', 'data', 'data' + year, 'arms_extra.shtml')
+    arms_exp_html = os.path.join('', 'data', 'data' + str(year), 'arms_extra.shtml')
     assert os.path.isfile(arms_exp_html)
     ids = get_ids(arms_exp_html)
-    arms_extra_csv = os.path.join('', 'data', 'data' + year, 'arms_extra.csv')
+    arms_extra_csv = os.path.join('', 'data', 'data' + str(year), 'arms_extra.csv')
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
@@ -656,6 +727,7 @@ def reset_db():
             reset_table(table=table, year=year)
     # reset_master()  # FOR TESTING this is commented out.
 
+    # might want to make this a global, it's constant and in use w/ update.
     exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
                      'ERAplus', 'FIP', 'PA', 'SOperW']
 
