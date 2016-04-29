@@ -349,23 +349,6 @@ def update_table_data(stats_dict, columns, year, table):
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for key in stats_dict.keys():
-        '''
-        # test_key = 'priceda01'
-
-        # unpack stints
-        stats = stats_dict[key]
-        # print stats
-        stints = []
-        if len(stats) > 10:  # only one stint
-            stats['stint'] = 1
-            stints.append(stats)
-        else:
-            for stint_key in stats.keys():
-                stats[stint_key]['stint'] = str(stint_key[-1])
-                stints.append(stats[stint_key])
-        # print "stints"
-        # return stints
-        '''
         stints = unpack_stints(key, stats_dict)
         for stint in stints:
             update_string = "UPDATE {} SET ".format(table)
@@ -496,17 +479,6 @@ def ins_table_data(table_data, cols_array, year, table='batting'):
 def insert_batter(key, stats_dict, team_dict, fields_array, year):
     """Create insertion string(s) batting."""
     """Returns an array of sql commands to be executed."""
-    '''
-    stats = stats_dict[key]
-    stints = []
-    if len(stats) == 30:  # only one stint
-        stats['stint'] = 1
-        stints.append(stats)
-    else:
-        for stint_key in stats.keys():
-            stats[stint_key]['stint'] = str(stint_key[-1])
-            stints.append(stats[stint_key])
-    '''
     stints = unpack_stints(key, stats_dict)
     insert_strings = []
     # empty_warning = []  # nb, likely served its purpose
@@ -568,18 +540,6 @@ def ins_fielding(year):
 
 def insert_fielder(key, year, stats_dict, team_dict, fields_array, position):
     """Make insert string for fielding."""
-    '''
-    stats = stats_dict[key]
-    stints = []
-
-    if len(stats) > 10:  # only one stint
-        stats['stint'] = 1
-        stints.append(stats)
-    else:  # unpack stints into the array
-        for stint_key in stats.keys():
-            stats[stint_key]['stint'] = str(stint_key[-1])
-            stints.append(stats[stint_key])
-    '''
     stints = unpack_stints(key, stats_dict)
 
     # move InnOuts to end of array
@@ -621,17 +581,6 @@ def insert_fielder(key, year, stats_dict, team_dict, fields_array, position):
 def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
     """Create insertion string(s)."""
     """Returns an array of sql commands to be executed."""
-    '''
-    stats = stats_dict[key]
-    stints = []
-    if len(stats) > 10:
-        stats['stint'] = 1
-        stints.append(stats)
-    else:
-        for stint_key in stats.keys():
-            stats[stint_key]['stint'] = str(stint_key[-1])
-            stints.append(stats[stint_key])
-    '''
     stints = unpack_stints(key, stats_dict)
 
     # move IPouts to end of array
