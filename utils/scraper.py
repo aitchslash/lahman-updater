@@ -19,7 +19,7 @@ import time
 # url_start = 'http://www.baseball-reference.com/leagues/MLB/'
 # url_end = '-standard-batting.shtml'
 
-year = '2016'
+year = '2016'  # just here so pep-8 stops complaining
 
 # example of changing browser, not in use
 # useragent = "Mozilla/5.0 (Windows NT 6.1; rv:7.0.1)
