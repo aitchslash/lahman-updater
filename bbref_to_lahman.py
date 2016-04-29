@@ -798,15 +798,6 @@ def populate_master(rookie_set, year, expanded=True):
     return  # statement
 
 
-def rook_ins_test(ins_statement):
-    """Test rookie insert."""
-    mydb = pymysql.connect(host, username, password, lahmandb)
-    cursor = mydb.cursor()
-    cursor.execute(ins_statement)
-    mydb.commit()
-    cursor.close()
-
-
 def rookie_deets(rookie_id):
     """Make UPDATE string for rookie update."""
     """Return update_string and data list"""
