@@ -341,13 +341,13 @@ def test_utd(year):
     pitching_dict = expand_pitch_stats(pitching_dict, year)
     us = update_table_data(pitching_dict, pitching_cols, year, 'pitching')
     print us
-    return us
+    return pitching_dict
 
 
 def update_table_data(stats_dict, columns, year, table):
     """Update lahmandb with expanded stats."""
     exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
-                     'ERAplus', 'FIP', 'PA', 'SOperW']
+                     'ERAplus', 'FIP', 'PA', 'SOperW', 'GIDP']
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for key in stats_dict.keys():
@@ -682,8 +682,6 @@ def find_latest_year():
 
 def reset_db():
     """Reset database to 2014."""
-    """For testing. Leaves in expanded stats."""
-
     latest_year = find_latest_year()
     for year in range(2015, int(latest_year) + 1):
         for table in ['batting', 'pitching', 'fielding']:
@@ -692,7 +690,7 @@ def reset_db():
 
     # might want to make this a global, it's constant and in use w/ update.
     exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
-                     'ERAplus', 'FIP', 'PA', 'SOperW']
+                     'ERAplus', 'FIP', 'PA', 'SOperW', 'GIDP']
 
     if 'FIP' in get_columns('pitching'):
         print "Dropping expanded pitching stats."
