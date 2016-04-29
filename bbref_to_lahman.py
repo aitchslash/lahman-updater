@@ -461,10 +461,6 @@ def main():
         print "Run update here"
         insert_year(year=options['year'], expanded=True, fielding=False, action='update')
 
-        # else:
-        #   ensure expanded is True
-        #   check columns - run insert if not there
-        #   run an update
     return latest_year
 
 
