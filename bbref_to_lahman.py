@@ -1,9 +1,12 @@
 # /usr/bin/env python
 """
-This reads the 2015 MLB hitting stats from a csv from bbref.
+Updates the Lahman Baseball Database.
 
-In order to extract the bbref ID's a copy of the html will
-have to be scraped as well.
+Uses data scraped and/or downloaded from baseball-reference and Chadwick Bureau
+to update the 2014 database.  Unlike the tradional database this update contains data
+up to and including the current season and can be updated anytime, not just once a year.  By
+default the update expands the original fields to include expanded data (e.g. OPS, FIP, etc.)
+The expansion of the database can be disabled by using the -o or --orthodox flag.
 
 Notes:
 1) Adding mlb advanced media ID as default.  Using INT(11)
@@ -14,7 +17,7 @@ Notes:
 5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
 6) Setting new players last game to year-12-31 so they're easy to find
-7) Rookie insert take a while on first run
+7) Rookie insert requires a page scrape per player so takes a while on first run
 8) Rookie birthState truncated to 2 chars
 :   may want to expand column to accept more
 :   or find converter
