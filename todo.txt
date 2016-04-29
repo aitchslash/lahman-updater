@@ -44,3 +44,5 @@ finalGame in master not updating.
 open lahman15 release
 :   check inf(inity extracted) pitching
 :   check teamID's for Chicago
+: 2013 lgID:AL, teamIDBR:CHC, teamID:CHA, name: Cubs
+: 204 lgID:NL, teamID:CHN, teamIDBR:CHW, name:WhiteSox
