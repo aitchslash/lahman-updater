@@ -368,7 +368,20 @@ def update_table_data(stats_dict, columns, year, table):
 
 
 def main():
-    """Do the thing, whatever that may be."""
+    """
+    Update the 2014 Lahman database to most recent data, including in-season.
+
+    Uses data scrapes from baseball-reference and downloads
+    from Chadwick Bureau.
+
+    Flags:
+    -o, --orthodox  maintains schema of 2014 db
+    -y, --year      year to be updated/expanded, defaults to current season
+    -i, --ignore    force update
+    -f, --fielding  include fielding data, scrape is time consuming
+    -x, --expiry    set allowable age of data in days, default 1
+    -c, --chadwick  download new chadwick data, ~35Mb
+    """
     options = process_args(sys.argv[1:])
     # toggle orthodox/expanded
     if options['orthodox'] is True:
