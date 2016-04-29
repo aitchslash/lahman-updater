@@ -35,7 +35,6 @@ import csv
 import os
 import urllib2
 import time
-import pprint  # nb, just for test prints
 from bs4 import BeautifulSoup
 import pymysql
 from utils.argparser import process_args, set_default_season
@@ -121,7 +120,7 @@ def get_ids(page, fielding=False):
             name = name[:-1]
         if name.find(' ') == -1:  # error checking
             print "Missing name for: ",
-            pprint.pprint(name)
+            print name
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
         # assert name_bbref_dict.has_key(name) is False
@@ -518,9 +517,6 @@ def insert_batter(key, stats_dict, team_dict, fields_array, year):
                 # empty_warning.append(key)  # nb, this is likely done too.
         ss += "NULL)"
         insert_strings.append(ss)
-
-    # if empty_warning:  # nb, can likely get rid of this
-    #    pprint.pprint(empty_warning)
     return insert_strings
 
 
@@ -628,9 +624,6 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
         ipouts = int(float(stint['IP'])) * 3 + int(last_digit)
         ss += str(ipouts) + ')'
         insert_strings.append(ss)
-        '''
-    if empty_warning:  # nb, can likely get rid of this
-        pprint.pprint(empty_warning)'''
     return insert_strings
 
 
