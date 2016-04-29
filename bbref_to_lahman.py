@@ -41,7 +41,7 @@ from utils.scraper import check_files, get_all_data
 
 people_csv = 'data/data2015/people.csv'
 
-cur_season = set_default_season()
+current_season = set_default_season()
 
 
 def get_db_login(path='data/db_details.txt'):
@@ -163,7 +163,7 @@ def make_people_dict(people_csv):
 
         for row in reader:
             # limit dictionary to those youger than 50
-            if row['birthYear'] and int(row['birthYear']) > int(cur_season) - 50:
+            if row['birthYear'] and int(row['birthYear']) > int(current_season) - 50:
                 bbref_id = row['bbrefID']
                 people_dict[bbref_id] = row
     return people_dict
@@ -182,8 +182,8 @@ def fix_mismatches(stats_dict_maker):
                    FROM master
                    WHERE birthYear > %s AND
                    DATE(finalGame) > "%s-1-1" AND
-                   playerID != bbrefID''' % (str(int(cur_season) - 50),
-                                             str(int(cur_season) - 5))
+                   playerID != bbrefID''' % (str(int(current_season) - 50),
+                                             str(int(current_season) - 5))
         cursor.execute(statement)
         mismatches = cursor.fetchall()
 
@@ -279,7 +279,7 @@ def make_team_dict():
     return team_dict
 
 
-def insert_year(year=cur_season, expanded=True, fielding=False, action='insert'):
+def insert_year(year=current_season, expanded=True, fielding=False, action='insert'):
     """Update/Insert lahmandb with given year stats."""
     """Checks data files in place.  Assumes no existing data."""
     bats_html = os.path.join('', 'data', 'data' + str(year), 'bats.shtml')
@@ -409,8 +409,8 @@ def main():
             print "Unable to extract login details."
             print "Please check your path."
         sys.exit()
-    if not 1876 <= int(options['year']) <= int(cur_season):
-        print "Baseball data only available from 1876 to " + cur_season
+    if not 1876 <= int(options['year']) <= int(current_season):
+        print "Baseball data only available from 1876 to " + current_season
         sys.exit()
 
     if latest_year != int(options['year']) and options['ignore'] is False:
@@ -428,8 +428,8 @@ def main():
         sys.exit()
 
     # if forced and this year, current year is expired, or data missing: get data
-    if ((options['ignore'] and str(options['year']) == cur_season) or
-       (past_due and str(options['year']) == cur_season) or not exists):
+    if ((options['ignore'] and str(options['year']) == current_season) or
+       (past_due and str(options['year']) == current_season) or not exists):
         print "Getting data from baseball-reference."
         print "Spynner windows may open."
         print "Ignore uncaught AttributeError"
@@ -442,13 +442,13 @@ def main():
 
     # OK, data gotten if needed.
     # if current year, run insert
-    if str(options['year']).strip() == str(cur_season).strip():
+    if str(options['year']).strip() == str(current_season).strip():
         print "Run insert here."
         tables = ['batting', 'pitching', 'fielding']
         if not options['fielding']:
             tables.pop()
         for table in tables:
-            reset_table(table=table, year=cur_season)
+            reset_table(table=table, year=current_season)
         insert_year(year=str(options['year']), expanded=expanded,
                     fielding=options['fielding'])
     # if latest data is earlier than the year we're working with database is empty there.
@@ -635,7 +635,7 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
     return insert_strings
 
 
-def expand_pitch_stats(pitching_dict, year=cur_season):
+def expand_pitch_stats(pitching_dict, year=current_season):
     """Add new stats to pitching_dict."""
     arms_exp_html = os.path.join('', 'data', 'data' + str(year), 'arms_extra.shtml')
     assert os.path.isfile(arms_exp_html)
@@ -665,7 +665,7 @@ def expand_pitch_stats(pitching_dict, year=cur_season):
     return sd
 
 
-def reset_table(table='batting', year=cur_season):
+def reset_table(table='batting', year=current_season):
     """Clear out all entries w/ yearID = year."""
     """Set table='pitching' to reset that table"""
     mydb = pymysql.connect(host, username, password, lahmandb)
@@ -919,7 +919,7 @@ def reset_master():
         cursor.close()
 
 
-def make_paths(position, year=cur_season):
+def make_paths(position, year=current_season):
     """Return fielding paths for csv and shtml files."""
     cwd = os.getcwd()
     csv_path = os.path.join(cwd, "data", "data" + year,
