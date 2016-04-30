@@ -3,6 +3,9 @@ ToDo:
 
 add --verbose, chadwick, dbpath flags 
 
+for verbose this looked cool:
+http://stackoverflow.com/questions/5980042/how-to-implement-the-verbose-or-v-option-into-a-script
+
 make inserts for teams, playoffs, all-star etc.
 
 ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
