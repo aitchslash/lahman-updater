@@ -1,7 +1,7 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-clean up unpack_stints chaff after testing
+add --setup, --reset, --update, --verbose flags 
 
 make inserts for teams, playoffs, all-star etc.
 
@@ -17,11 +17,6 @@ look into context managers vs. pymysql - might use to supress spynner's Attribut
 
 move testers and resets to utils
 
-might want to break into a setup.py and a update.py
-:	would want to put all alter table add column to setup f(x)
-
-delete old code and print statements
-improve comments and doc strings
 update readme
 
 extra code in rookie_deets from when it updated
@@ -45,4 +40,4 @@ open lahman15 release
 :   check inf(inity extracted) pitching
 :   check teamID's for Chicago
 : 2013 lgID:AL, teamIDBR:CHC, teamID:CHA, name: Cubs
-: 204 lgID:NL, teamID:CHN, teamIDBR:CHW, name:WhiteSox
+: 2014 lgID:NL, teamID:CHN, teamIDBR:CHW, name:WhiteSox
