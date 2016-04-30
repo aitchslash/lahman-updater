@@ -14,7 +14,7 @@ Notes:
 :   if importing by hand.
 3) Stint is not assured to be correct. Relies on bbref order
 4) no recorded out leads to an infinite ERA - using 99.99
-5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN)
+5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN) in 'teams' table
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
 6) Setting new players last game to year-12-31 so they're easy to find
 7) Rookie insert requires a page scrape per player so takes a while on first run
@@ -377,12 +377,13 @@ def main():
     from Chadwick Bureau.
 
     Flags:
-    -o, --orthodox  maintains schema of 2014 db
-    -y, --year      year to be updated/expanded, defaults to current season
-    -i, --ignore    force update
-    -f, --fielding  include fielding data, scrape is time consuming
-    -x, --expiry    set allowable age of data in days, default 1
-    -c, --chadwick  download new chadwick data, ~35Mb
+    -o, --orthodox      maintains schema of 2014 db
+    -y, --year          year to be updated/expanded, defaults to current season
+    -i, --ignore        force update
+    -f, --fielding      include fielding data, scrape is time consuming
+    -x, --expiry        set allowable age of data in days, default 1
+    -c, --chadwick      download new chadwick data, ~35Mb
+    -d, --dbloginfile   path to db login details
     """
     options = process_args(sys.argv[1:])
     # toggle orthodox/expanded
