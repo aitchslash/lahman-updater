@@ -1,11 +1,11 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-add --setup, --reset, --update, --verbose flags 
+add --verbose, chadwick, dbpath flags 
 
 make inserts for teams, playoffs, all-star etc.
 
-ensure that duplicate names (e.g. Alex Gonsalez) are taken care of
+ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
 
 look into context managers vs. pymysql - might use to supress spynner's AttributeError
