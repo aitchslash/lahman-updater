@@ -22,12 +22,26 @@ def process_args(args):
     # throw value in -y flag
     # need file name too
     parser = argparse.ArgumentParser(description="updates the lahman db")
+    parser.add_argument('--setup',
+                        action='store_true',
+                        help='updates 2014 db upto and including current season')
+
+    parser.add_argument('--reset',
+                        action='store_true',
+                        help='reset db to 2014 and delete expanded fields')
+
     parser.add_argument('-i',
                         '--ignore',
                         action='store_true',
                         help='Force get of new data ingnoring expiry')
 
     parser.add_argument('-x',
+                        '--expand',
+                        type=int,
+                        default=int(year),
+                        help='update db with expanded stats for given year')
+
+    parser.add_argument('-e',
                         '--expiry',
                         type=int,
                         default=1,
@@ -45,8 +59,9 @@ def process_args(args):
                         '--dbloginfile',
                         default='data/db_details.txt',
                         help='path to file with db login details')
-    parser.add_argument('-o',
-                        '--orthodox',
+
+    parser.add_argument('-s',
+                        '--strict',
                         action='store_true',
                         default=False,
                         help='Set flag to not use expanded db stats (e.g. FIP, OPS, MLBamID)')

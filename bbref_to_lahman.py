@@ -6,7 +6,7 @@ Uses data scraped and/or downloaded from baseball-reference and Chadwick Bureau
 to update the 2014 database.  Unlike the tradional database this update contains data
 up to and including the current season and can be updated anytime, not just once a year.  By
 default the update expands the original fields to include expanded data (e.g. OPS, FIP, etc.)
-The expansion of the database can be disabled by using the -o or --orthodox flag.
+The expansion of the database can be disabled by using the -s or --strict flag.
 
 Notes:
 1) Adding mlb advanced media ID as default.  Using INT(11)
@@ -41,7 +41,7 @@ from utils.argparser import process_args, set_default_season
 from utils.scraper import check_files, get_all_data
 
 
-people_csv = 'data/data2015/people.csv'
+people_csv = 'data/people.csv'
 
 current_season = set_default_season()
 
@@ -376,25 +376,29 @@ def main():
     Uses data scrapes from baseball-reference and downloads
     from Chadwick Bureau.
 
+    Can also be used to add expanded stats to prior years.
+
     Flags:
-    -o, --orthodox      maintains schema of 2014 db
+    --setup             initial update of 2014 db to current data
+    --reset             reset db to 2014, removed expanded data if present
+    -x, --expand        enters expanded stats into db for year given
+    -s, --strict        maintains schema of 2014 db
     -y, --year          year to be updated/expanded, defaults to current season
     -i, --ignore        force update
     -f, --fielding      include fielding data, scrape is time consuming
-    -x, --expiry        set allowable age of data in days, default 1
+    -e, --expiry        set allowable age of data in days, default 1
     -c, --chadwick      download new chadwick data, ~35Mb
     -d, --dbloginfile   path to db login details
     """
     options = process_args(sys.argv[1:])
-    # toggle orthodox/expanded
-    if options['orthodox'] is True:
+    # toggle strict/expanded
+    if options['strict'] is True:
         expanded = False
     else:
         expanded = True
     '''
     for option in options:
-        print str(option) + ': ' + str(options[option])
-    '''
+        print str(option) + ': ' + str(options[option])'''
 
     try:
         latest_year = find_latest_year()
@@ -404,24 +408,53 @@ def main():
         try:
             login_dict = get_db_login(options['dbloginfile'])
             if len(login_dict) != 4:
-                print "Something is wrong with your login file."
-                print "Consider running setup.py"
+                print "Something is wrong with your db login file."
+                print "Please check the file and try again."
             else:
                 print "Path to login file looks OK. Make sure db is running."
         except:
             print "Unable to extract login details."
             print "Please check your path."
         sys.exit()
+
+    if options['reset']:
+        reset_db()
+        print "Database reset to 2014."
+        sys.exit()
+
+    if options['setup']:
+        print "This may take a while. Have a coffee."
+        print "Run setup() here."
+        # check for data
+        # for years between 2014 and now, get data if not there
+        print 'reset_db'
+        reset_db()
+        for year in range(2015, int(current_season) + 1):
+
+            print str(year)
+            print 'get_all_data'
+            get_all_data(str(year), fielding=True)
+            print 'check data'
+            past_due, exists = check_files(str(year), expiry=1, fielding=True, chadwick=False)
+            if past_due or exists is False:
+                print "Data Fetch went awry. Please run with --setup again."
+                sys.exit()
+            else:
+                print 'insert data'
+                insert_year(year=str(year), expanded=expanded, fielding=True, action='insert')
+        print "Database updated."
+        sys.exit()
+
     if not 1876 <= int(options['year']) <= int(current_season):
-        print "Baseball data only available from 1876 to " + current_season
+        print "Invalid year. Baseball data only available from 1876 to " + current_season
         sys.exit()
 
     if latest_year != int(options['year']) and options['ignore'] is False:
         print "Preventing overwrite of lahman original data."
-        print "Run setup.py to get past years or use --ignore to force update"
+        print "Use --ignore to force update"
         sys.exit()
 
-    # if options['ignore'] is False:
+    # check if files exisit and are recent.
     past_due, exists = check_files(year=options['year'],
                                    expiry=options['expiry'],
                                    fielding=options['fielding'],
@@ -430,7 +463,7 @@ def main():
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
         sys.exit()
 
-    # if forced and this year, current year is expired, or data missing: get data
+    # if (forced and this year) or current year data is expired or data missing: get data
     if ((options['ignore'] and str(options['year']) == current_season) or
        (past_due and str(options['year']) == current_season) or not exists):
         print "Getting data from baseball-reference."
@@ -531,7 +564,7 @@ def ins_fielding(year):
     print 'setup run, opening db...'
 
     for pos in positions:
-        csv_path, html_path = make_paths(pos)
+        csv_path, html_path = make_paths(pos, year)
         pos_data = get_ids(html_path, fielding=True)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
         print 'inserting into ' + "fielding " + pos + " ..."
