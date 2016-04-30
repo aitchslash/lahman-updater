@@ -302,7 +302,7 @@ def insert_year(year=current_season, expanded=True, fielding=False, action='inse
     pitching_cols = get_columns('pitching')
     # if pitching cols need to be added i.e. != 40 or == 30
     if expanded is True:
-        if len(pitching_cols) == 30:
+        if len(pitching_cols) < 31:
             add_pitching_columns()
             pitching_cols = get_columns('pitching')
         pitching_dict = expand_pitch_stats(pitching_dict, year)
@@ -396,9 +396,9 @@ def main():
         expanded = False
     else:
         expanded = True
-    '''
+
     for option in options:
-        print str(option) + ': ' + str(options[option])'''
+        print str(option) + ': ' + str(options[option])
 
     try:
         latest_year = find_latest_year()
@@ -449,7 +449,7 @@ def main():
         print "Invalid year. Baseball data only available from 1876 to " + current_season
         sys.exit()
 
-    if latest_year != int(options['year']) and options['ignore'] is False:
+    if (latest_year != int(options['year']) and options['ignore'] is False and options['expand'] is False):
         print "Preventing overwrite of lahman original data."
         print "Use --ignore to force update"
         sys.exit()
@@ -459,7 +459,7 @@ def main():
                                    expiry=options['expiry'],
                                    fielding=options['fielding'],
                                    chadwick=options['chadwick'])
-    if past_due is False and exists is True and options['ignore'] is False:
+    if past_due is False and exists is True and options['ignore'] is False and options['expand'] is False:
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
         sys.exit()
 
@@ -493,10 +493,13 @@ def main():
         insert_year(year=str(options['year']), expanded=expanded,
                     fielding=options['fielding'])
     # else year earlier and data in both files and database - update with expanded.
-    else:
+    elif options['expand'] is True or options['ignore'] is True:
         print "Run update here"
         insert_year(year=options['year'], expanded=True, fielding=False, action='update')
-
+    else:
+        print "Something wrong with arg logic. Here's their current settings:"
+        for option in options:
+            print str(option) + ': ' + str(options[option])
     return latest_year
 
 
@@ -670,6 +673,14 @@ def expand_pitch_stats(pitching_dict, year=current_season):
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
+    print len(sd.keys())
+    print len(pitching_dict.keys())
+    for key in sd.keys():
+        if key not in pitching_dict.keys():
+            print key
+    for key in pitching_dict.keys():
+        if key not in sd.keys():
+            print key
     assert sd.keys() == pitching_dict.keys()
 
     for p_id in sd.keys():
@@ -724,7 +735,7 @@ def reset_db():
 
     # might want to make this a global, it's constant and in use w/ update.
     exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
-                     'ERAplus', 'FIP', 'PA', 'SOperW', 'GIDP']
+                     'ERAplus', 'FIP', 'PA', 'SOperW']
 
     if 'FIP' in get_columns('pitching'):
         print "Dropping expanded pitching stats."

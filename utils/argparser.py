@@ -37,9 +37,8 @@ def process_args(args):
 
     parser.add_argument('-x',
                         '--expand',
-                        type=int,
-                        default=int(year),
-                        help='update db with expanded stats for given year')
+                        action='store_true',
+                        help='boolean, update db with expanded stats for -y year')
 
     parser.add_argument('-e',
                         '--expiry',
@@ -62,7 +61,7 @@ def process_args(args):
 
     parser.add_argument('-s',
                         '--strict',
-                        action='store_true',
+                        action='store_false',
                         default=False,
                         help='Set flag to not use expanded db stats (e.g. FIP, OPS, MLBamID)')
     parser.add_argument('-f',
