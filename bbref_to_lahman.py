@@ -16,6 +16,7 @@ Notes:
 4) no recorded out leads to an infinite ERA - using 99.99
 5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN) in 'teams' table
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
+:   should be fixed by running setup or utils.db_tools.fix_chicago_team_data()
 6) Setting new players last game to year-12-31 so they're easy to find
 7) Rookie insert requires a page scrape per player so takes a while on first run
 8) Rookie birthState truncated to 2 chars
@@ -26,7 +27,7 @@ Notes:
 10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
 11) Rookie missing from Chadwick (34 as of Apr 13/16)
 :   SELECT * FROM master WHERE bbrefID IS NULL
-12) Assumes you are using lahman 2014 version.  When tested on 2012 differnces
+12) Assumes you are using lahman 2014 version.  When tested on 2012 differences
 :   in structure and data types both threw errors.
 """
 
