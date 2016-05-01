@@ -39,13 +39,13 @@ from bs4 import BeautifulSoup
 import pymysql
 from utils.argparser import process_args, set_default_season
 from utils.scraper import check_files, get_all_data
-
+import utils.db_tools
 
 people_csv = 'data/people.csv'
 
 current_season = set_default_season()
 
-
+'''
 def get_db_login(path='data/db_details.txt'):
     """Get login details for database from file."""
     with open(path, 'r') as f:
@@ -53,45 +53,14 @@ def get_db_login(path='data/db_details.txt'):
         login_dict = {i.split(":")[0].strip(): i.split(":")[1].strip()
                       for i in lines}
     return login_dict
-
+'''
 # database login info  # may have to pass this through funcs
 
-db = get_db_login()
+db = utils.db_tools.get_db_login()
 lahmandb = db['db']
 host = db['host']
 username = db['username']
 password = db['password']
-
-
-def add_pitching_columns():
-    """Run once.  Add extra stat columns to pitching."""
-    mydb = pymysql.connect(host, username, password, lahmandb)
-    cursor = mydb.cursor()
-    statement = """ALTER TABLE pitching
-                   ADD COLUMN ROE TINYINT(2) DEFAULT NULL,
-                   ADD COLUMN BAbip DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN OPS DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN SLG DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN OBP DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN WHIP DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN ERAplus SMALLINT DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN FIP DOUBLE DEFAULT NULL AFTER BAopp,
-                   ADD COLUMN PA SMALLINT DEFAULT NULL AFTER BFP,
-                   ADD COLUMN SOperW DOUBLE DEFAULT NULL AFTER SO"""
-    cursor.execute(statement)
-    mydb.commit()
-    cursor.close()
-
-
-def add_mlbamid_master():
-    """Add column for mlb adv media ID to master."""
-    mydb = pymysql.connect(host, username, password, lahmandb)
-    cursor = mydb.cursor()
-    statement = """ALTER TABLE master
-                   ADD COLUMN mlbamID INT(11) DEFAULT NULL"""
-    cursor.execute(statement)
-    mydb.commit()
-    cursor.close()
 
 
 def get_ids(page, fielding=False):
@@ -303,7 +272,7 @@ def insert_year(year=current_season, expanded=True, fielding=False, action='inse
     # if pitching cols need to be added i.e. != 40 or == 30
     if expanded is True:
         if len(pitching_cols) < 31:
-            add_pitching_columns()
+            utils.db_tools.add_pitching_columns()
             pitching_cols = get_columns('pitching')
         pitching_dict = expand_pitch_stats(pitching_dict, year)
     # team_dict = make_team_dict()
@@ -406,7 +375,7 @@ def main():
         print "Error connecting to database."
         # check db path is file
         try:
-            login_dict = get_db_login(options['dbloginfile'])
+            login_dict = utils.db_tools.get_db_login(options['dbloginfile'])
             if len(login_dict) != 4:
                 print "Something is wrong with your db login file."
                 print "Please check the file and try again."
@@ -429,6 +398,8 @@ def main():
         # for years between 2014 and now, get data if not there
         print 'reset_db'
         reset_db()
+        # make sure the Chicago 'teams' errata is fixed
+        utils.db_tools.fix_chicago_team_data()
         for year in range(2015, int(current_season) + 1):
 
             print str(year)
@@ -449,7 +420,8 @@ def main():
         print "Invalid year. Baseball data only available from 1876 to " + current_season
         sys.exit()
 
-    if (latest_year != int(options['year']) and options['ignore'] is False and options['expand'] is False):
+    if (latest_year != int(options['year']) and options['ignore'] is False and
+            options['expand'] is False):
         print "Preventing overwrite of lahman original data."
         print "Use --ignore to force update"
         sys.exit()
@@ -459,7 +431,8 @@ def main():
                                    expiry=options['expiry'],
                                    fielding=options['fielding'],
                                    chadwick=options['chadwick'])
-    if past_due is False and exists is True and options['ignore'] is False and options['expand'] is False:
+    if (past_due is False and exists is True and options['ignore'] is False and
+            options['expand'] is False):
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
         sys.exit()
 
@@ -780,7 +753,7 @@ def populate_master(rookie_set, year, expanded=True):
     # check cols right length
     #   if not insert mlbamID
     if len(cols) == 24 and expanded is True:
-        add_mlbamid_master()
+        utils.db_tools.add_mlbamid_master()
         print "trying to add mlbamID to master"
     else:
         assert len(cols) == 25
