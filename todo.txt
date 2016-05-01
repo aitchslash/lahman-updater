@@ -10,6 +10,8 @@ make inserts for teams, playoffs, all-star etc.
 
 ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
 :   put an assertion in get_ids - should deal w/ it better
+:	could nest id's like stints
+:	could rework w/ bbref as key (not as value)
 
 look into context managers vs. pymysql - might use to supress spynner's AttributeError
 : https://docs.python.org/2.5/whatsnew/pep-343.html
@@ -44,3 +46,6 @@ open lahman15 release
 :   check teamID's for Chicago
 : 2013 lgID:AL, teamIDBR:CHC, teamID:CHA, name: Cubs
 : 2014 lgID:NL, teamID:CHN, teamIDBR:CHW, name:WhiteSox
+:	looks like it's only the end columns that need to be fixed.
+:	name, park, teamIDLahman45, teamIDBR, attendance
+:		can't tell about BPF. - looks wrong
