@@ -38,14 +38,3 @@ consider grabbing chadwick from the git repo.
 
 think about how to deal w/ birthState hack to 2 chars
 mexican states.zip is available http://www.baseball-databank.org/files/tables/
-
-finalGame in master not updating.
-
-open lahman15 release
-:   check inf(inity extracted) pitching
-:   check teamID's for Chicago
-: 2013 lgID:AL, teamIDBR:CHC, teamID:CHA, name: Cubs
-: 2014 lgID:NL, teamID:CHN, teamIDBR:CHW, name:WhiteSox
-:	looks like it's only the end columns that need to be fixed.
-:	name, park, teamIDLahman45, teamIDBR, attendance
-:		can't tell about BPF. - looks wrong
