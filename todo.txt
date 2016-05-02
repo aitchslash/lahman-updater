@@ -23,6 +23,9 @@ look into context managers vs. pymysql - might use to supress spynner's Attribut
 move testers and resets to utils
 
 update readme
+:  get lahman up and running
+:  edit db deets set db deets
+:  run --setup
 
 extra code in rookie_deets from when it updated
 
