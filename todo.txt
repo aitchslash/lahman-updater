@@ -1,7 +1,7 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-add --verbose, chadwick, dbpath flags 
+add --verbose, dbpath flags 
 
 for verbose this looked cool:
 http://stackoverflow.com/questions/5980042/how-to-implement-the-verbose-or-v-option-into-a-script
