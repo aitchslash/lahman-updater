@@ -39,7 +39,7 @@ import time
 from bs4 import BeautifulSoup
 import pymysql
 from utils.argparser import process_args, set_default_season
-from utils.scraper import check_files, get_all_data
+from utils.scraper import check_files, get_all_data, check_chadwick
 import utils.db_tools
 
 people_csv = 'data/people.csv'
@@ -366,9 +366,10 @@ def main():
         expanded = False
     else:
         expanded = True
-
+    '''
     for option in options:
         print str(option) + ': ' + str(options[option])
+    '''
 
     try:
         latest_year = find_latest_year()
@@ -387,6 +388,25 @@ def main():
             print "Please check your path."
         sys.exit()
 
+    # flip option to get chadwick if data is fresh and ignore is False
+    if options['chadwick'] and options['ignore'] is False:
+        fresh = check_chadwick
+        if fresh:
+            print "Chadwick data fresh"
+            options['chadwick'] = False
+    '''
+    if options['chadwick']:
+        if options['ignore'] is False:
+            fresh = check_chadwick()
+        else:
+            fresh = False
+        if fresh:
+            print "Chadwick data fresh"
+            options['chadwick'] = False
+        else:
+            print "Chadwick out of date.  Getting..."
+    '''
+
     if options['reset']:
         reset_db()
         print "Database reset to 2014."
@@ -395,19 +415,19 @@ def main():
     if options['setup']:
         print "This may take a while. Have a coffee."
         print "Run setup() here."
-        # check for data
-        # for years between 2014 and now, get data if not there
         print 'reset_db'
         reset_db()
+
         # make sure the Chicago 'teams' errata is fixed
         utils.db_tools.fix_chicago_team_data()
+
         for year in range(2015, int(current_season) + 1):
 
             print str(year)
             print 'get_all_data'
             get_all_data(str(year), fielding=True)
             print 'check data'
-            past_due, exists = check_files(str(year), expiry=1, fielding=True, chadwick=False)
+            past_due, exists = check_files(str(year), expiry=1, fielding=True)
             if past_due or exists is False:
                 print "Data Fetch went awry. Please run with --setup again."
                 sys.exit()
@@ -430,8 +450,7 @@ def main():
     # check if files exisit and are recent.
     past_due, exists = check_files(year=options['year'],
                                    expiry=options['expiry'],
-                                   fielding=options['fielding'],
-                                   chadwick=options['chadwick'])
+                                   fielding=options['fielding'])
     if (past_due is False and exists is True and options['ignore'] is False and
             options['expand'] is False):
         print "Data is fresh. Use --ignore to force refresh or change --expiry"
@@ -647,8 +666,8 @@ def expand_pitch_stats(pitching_dict, year=current_season):
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
-    print len(sd.keys())
-    print len(pitching_dict.keys())
+    # print len(sd.keys())
+    # print len(pitching_dict.keys())
     for key in sd.keys():
         if key not in pitching_dict.keys():
             print key

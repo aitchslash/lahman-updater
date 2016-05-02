@@ -10,8 +10,10 @@ slower but you're more likely to get the data.
 
 import spynner
 import os
-from bs4 import BeautifulSoup
 import time
+import datetime
+import urllib2
+from bs4 import BeautifulSoup
 # import pyquery
 
 # base url for testing, need to write script
@@ -54,7 +56,7 @@ def url_maker(fielding=False, year=year):
     return name_url_pairs
 
 
-def check_files(year=year, expiry=1, fielding=False, chadwick=False):
+def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     """Verify files in data are new and of expected sizes."""
     """Set expiry to ensure that files are only 'expiry' days old."""
     """Intended to be run as import from main dir.  Paths are affected."""
@@ -69,16 +71,17 @@ def check_files(year=year, expiry=1, fielding=False, chadwick=False):
     to_check = [] + arms_bats
     assert len(arms_bats) == 6
 
-    chad_csv = ['chadwick.csv']
+    # chad_csv = ['chadwick.csv']
 
     if fielding is True:
         gloves = [i for i in f_names if i.find('fielding') > -1]
         # print len(gloves)
         assert len(gloves) == 18  # will be 18
         to_check += gloves
+    '''
     if chadwick is True:
         assert os.path.isfile(os.path.join(data_dir, 'chadwick.csv'))
-        to_check += chad_csv
+        to_check += chad_csv'''
 
     now = time.time()
     for f in to_check:
@@ -115,7 +118,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     if chadwick is True:
         get_biographical()
     # Check if data is there, new and in range of len
-    past_due, exists = check_files(year, expiry, fielding=fielding, chadwick=chadwick)
+    past_due, exists = check_files(year, expiry, fielding=fielding)  # , chadwick=chadwick)
     if past_due is False and exists is True:
         print "Files now up to date."
     return past_due, exists
@@ -213,15 +216,69 @@ def get_data(url, name, year):
     return None
 
 
+def check_chadwick():
+    """Verify that there is new data in the current chadwick repository."""
+    csv_path = 'data/people.csv'
+    fresh = True
+    now = time.time()
+    one_day = 60 * 60 * 24
+    six_days = one_day * 6
+    # check there is a file
+    file_exists = os.path.exists(csv_path)
+    if file_exists:
+        file_size = os.path.getsize(csv_path)
+        print file_size
+        if file_size < 35000000:
+            print 'Current version of Chadwick too small'
+            fresh = False
+        elif file_size < 37000000:
+            print "Right size."
+        else:
+            print "ALERT: Chadwick is very big."
+    else:
+        print "File missing from path."
+        fresh = False
+        return fresh
+
+    # check age of current file
+    last_modified = os.path.getmtime(csv_path)
+    # ack, not working, @fix_csv likey mucks up creation date
+
+    # check age of chadwick on github
+    url = "https://github.com/chadwickbureau/register"
+    page = urllib2.urlopen(url).read()
+    soup = BeautifulSoup(page, 'html.parser')
+    #   document.getElementsByClassName('age')
+    ages_of_files = soup.find_all('td', {'class': "age"})
+    #   assert that the page is as expected i.e. len results == 2
+    assert len(ages_of_files) == 2
+    date_string = ages_of_files[0].text.encode('ascii').strip('\n')
+    print date_string
+    struct_time = datetime.datetime.strptime(date_string, '%B %d, %Y')
+    git_created_time = time.mktime(struct_time.timetuple()) + one_day
+    # if chadwick isn't fresh return False
+    # unlikely, using modified rather than created, but worthwhile
+    if git_created_time > last_modified:
+        print now - git_created_time
+        print now - last_modified
+        print "Chadwick more recent than current file."
+        fresh = False
+    # chadwick says they update every 5 days or so
+    elif now - git_created_time > six_days:
+        print "Chadwick less than 5 days old"
+        fresh = False
+    return fresh
+
+
 def get_biographical():
     """D/L biographical data from Chadwick Bureau."""
     url = 'https://raw.githubusercontent.com/chadwickbureau/'
     url += 'register/master/data/people.csv'
     print "Getting Chadwick Bureau data."
     print "~35MB file. This may take a minute."
-    chad_path = os.path.join('', 'data', 'data' + year)
+    chad_path = os.path.join('', 'data')
     browser = spynner.Browser()
     cb_csv = browser.download(url)
-    with open(os.path.join(chad_path, 'chadwick.csv'), 'w') as cb:
+    with open(os.path.join(chad_path, 'people.csv'), 'w') as cb:
         cb.write(cb_csv.encode('utf-8'))
     return
