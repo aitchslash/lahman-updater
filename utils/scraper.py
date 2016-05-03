@@ -13,6 +13,7 @@ import os
 import time
 import datetime
 import urllib2
+import logging
 from bs4 import BeautifulSoup
 # import pyquery
 
@@ -62,9 +63,9 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     """Intended to be run as import from main dir.  Paths are affected."""
     past_due, exists = False, True
     data_dir = os.path.join('', 'data', 'data' + str(year))
-    # print data_dir
+    # loggin.debug(data_dir)
     if os.path.isdir(data_dir) is False:
-        print "Data dir for " + str(year) + " is missing."
+        logging.warning("Data dir for " + str(year) + " is missing.")
         return True, False  # past_due, exists  # nb, uglyish
     f_names = os.listdir(data_dir)
     arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
@@ -75,7 +76,7 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
 
     if fielding is True:
         gloves = [i for i in f_names if i.find('fielding') > -1]
-        # print len(gloves)
+        # loggin.debug(len(gloves))
         assert len(gloves) == 18  # will be 18
         to_check += gloves
     '''
@@ -88,7 +89,7 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
         # nb, this if block is likely redundant
         if os.path.isfile(os.path.join(data_dir, f)) is False:
             exists = False
-            print f + " not found."
+            logging.warning(f + " not found.")
             return True, False  # past_due, exists  # nb, ugly
         created = os.path.getmtime(os.path.join(data_dir, f))
         age = now - created
@@ -101,9 +102,9 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     for path in paths:
         assert os.path.getsize(path) > 0
         if os.path.getsize(path) < 10000:
-            print "Alert: " + path + " is very small."
+            logging.warning("Alert: " + path + " is very small.")
     if past_due:
-        print "Alert: files are more than {} day(s) old.".format(expiry)
+        logging.warning("Alert: files are more than {} day(s) old.".format(expiry))
     return past_due, exists
 
 
@@ -120,7 +121,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     # Check if data is there, new and in range of len
     past_due, exists = check_files(year, expiry, fielding=fielding)  # , chadwick=chadwick)
     if past_due is False and exists is True:
-        print "Files now up to date."
+        logging.info("Files now up to date.")
     return past_due, exists
 
 
@@ -135,12 +136,14 @@ def get_data(url, name, year):
     # cwd = os.path.getcwd()
     stats_dir = os.path.join('', 'data', 'data' + str(year))
     if os.path.isdir(stats_dir) is False:
-        print "Need to make directory."
+        logging.info("Need to make directory.")
         os.mkdir(stats_dir)
     csv_path = os.path.join(stats_dir, name + '.csv')
     html_path = os.path.join(stats_dir, name + '.shtml')
     # start up spynner
-    br = spynner.Browser()
+    br = spynner.Browser()  # old error-throwing, yet funcitonal
+    # br = spynner.browser.Browser(embed_jquery=True,
+    #                             debug_level=0,)
     # url = url_start + year + url_end
 
     # the page takes a while to load, 10 was too little
@@ -148,14 +151,14 @@ def get_data(url, name, year):
     br.create_webview()
     # may want to get rid of show() - nice for debugging.
     br.show()
-    print "Processing " + name
+    logging.info("Processing " + name)
     br.load_jquery(True)
     # unhide non-qualifiers
     try:
         br.click('input[type="checkbox"]')
         br.wait_load(10)
     except spynner.SpynnerTimeout:
-        print "timed out."
+        logging.error("timed out.")
         # raise spynner.SpynnerTimeout
 
     # grab the html before changing to csv
@@ -163,7 +166,7 @@ def get_data(url, name, year):
     with open(html_path, 'w') as f:
         f.write(br.html.encode('utf-8'))
 
-    print "HTML written."
+    logging.info("HTML written.")
     # convert table to csv on page. Will be contained in only <pre>
     # fielding query ('span[tip$="values"]')[2] # third of 4
     # for catchers (or fielders in general):
@@ -189,7 +192,11 @@ def get_data(url, name, year):
         br.runjs(query + ".click()")
         br.wait(5)'''
 
-    soup = BeautifulSoup(br.html, 'html.parser')
+    try:
+        soup = BeautifulSoup(br.html, 'html.parser')
+    except:
+        logging.debug("problems making soup.")
+        pass
     # try this
     # soup = soup.decode('utf-8', 'ignore')
     pre_section = soup.find('pre').get_text()
@@ -201,16 +208,19 @@ def get_data(url, name, year):
     with open(csv_path, 'w') as p:
         p.write(pre_section.encode('utf-8'))
 
-    print "CSV written."
+    logging.info("CSV written.")
     # f(x) freezing in REPL after successful execution
     # tried the two lines below; didn't help
     # br.destroy_webview()
     # print "050"
     try:
         br.destroy_webview()
+        print "Before close."
         br.close()
-    except AttributeError, e:
-        print "Spynner problem closing browser." + e
+        print "After close."
+    except BaseException as error:
+        print "Spynner problem closing browser. {}".format(error)
+        pass
     # br.close()
     # print "060"
     return None
@@ -227,16 +237,16 @@ def check_chadwick():
     file_exists = os.path.exists(csv_path)
     if file_exists:
         file_size = os.path.getsize(csv_path)
-        print file_size
+        logging.debug(file_size)
         if file_size < 35000000:
-            print 'Current version of Chadwick too small'
+            logging.warning('Current version of Chadwick too small')
             fresh = False
         elif file_size < 37000000:
-            print "Right size."
+            logging.debug("Right size.")
         else:
-            print "ALERT: Chadwick is very big."
+            logging.warning("ALERT: Chadwick is very big.")
     else:
-        print "File missing from path."
+        logging.warning("File missing from path.")
         fresh = False
         return fresh
 
@@ -253,19 +263,19 @@ def check_chadwick():
     #   assert that the page is as expected i.e. len results == 2
     assert len(ages_of_files) == 2
     date_string = ages_of_files[0].text.encode('ascii').strip('\n')
-    print date_string
+    logging.debug(date_string)
     struct_time = datetime.datetime.strptime(date_string, '%B %d, %Y')
     git_created_time = time.mktime(struct_time.timetuple()) + one_day
     # if chadwick isn't fresh return False
     # unlikely, using modified rather than created, but worthwhile
     if git_created_time > last_modified:
-        print now - git_created_time
-        print now - last_modified
-        print "Chadwick more recent than current file."
+        logging.debug(now - git_created_time)
+        logging.debug(now - last_modified)
+        logging.info("Chadwick more recent than current file.")
         fresh = False
     # chadwick says they update every 5 days or so
     elif now - git_created_time > six_days:
-        print "Chadwick less than 5 days old"
+        logging.info("Chadwick less than 5 days old")
         fresh = False
     return fresh
 

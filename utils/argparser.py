@@ -4,6 +4,7 @@
 import argparse
 import sys
 import time
+# import logging
 
 
 def set_default_season():
@@ -29,6 +30,12 @@ def process_args(args):
     parser.add_argument('--reset',
                         action='store_true',
                         help='reset db to 2014 and delete expanded fields')
+
+    parser.add_argument('-v',
+                        '--verbose',
+                        action='count',
+                        default=0,
+                        help="increase verbosity: 0 => warnings, 1 => info, 2 => debug")
 
     parser.add_argument('-i',
                         '--ignore',
