@@ -14,6 +14,7 @@ import time
 import datetime
 import urllib2
 import logging
+from contextlib import contextmanager
 from bs4 import BeautifulSoup
 # import pyquery
 
@@ -27,6 +28,26 @@ year = '2016'  # just here so pep-8 stops complaining
 # example of changing browser, not in use
 # useragent = "Mozilla/5.0 (Windows NT 6.1; rv:7.0.1)
 # Gecko/20100101 Firefox/7.0.1"
+
+
+@contextmanager
+def ignored(*exceptions):
+    """Suppress errors."""
+    try:
+        yield
+    except exceptions:
+        pass
+
+
+# closing with context
+@contextmanager
+def closing(thing):
+    """Context manager for ensuring spynner browser close."""
+    try:
+        yield thing
+    finally:
+        with ignored(BaseException, AttributeError):
+            thing.close()
 
 
 def url_maker(fielding=False, year=year):
@@ -141,86 +162,88 @@ def get_data(url, name, year):
     csv_path = os.path.join(stats_dir, name + '.csv')
     html_path = os.path.join(stats_dir, name + '.shtml')
     # start up spynner
-    br = spynner.Browser()  # old error-throwing, yet funcitonal
+    # br = spynner.Browser()  # old error-throwing, yet funcitonal
     # br = spynner.browser.Browser(embed_jquery=True,
     #                             debug_level=0,)
-    # url = url_start + year + url_end
+    # try a context manager
+    with closing(spynner.Browser()) as br:
+        # url = url_start + year + url_end
 
-    # the page takes a while to load, 10 was too little
-    br.load(url, load_timeout=15)
-    br.create_webview()
-    # may want to get rid of show() - nice for debugging.
-    br.show()
-    logging.info("Processing " + name)
-    br.load_jquery(True)
-    # unhide non-qualifiers
-    try:
-        br.click('input[type="checkbox"]')
-        br.wait_load(10)
-    except spynner.SpynnerTimeout:
-        logging.error("timed out.")
-        # raise spynner.SpynnerTimeout
+        # the page takes a while to load, 10 was too little
+        br.load(url, load_timeout=15)
+        br.create_webview()
+        # may want to get rid of show() - nice for debugging.
+        br.show()
+        logging.info("Processing " + name)
+        br.load_jquery(True)
+        # unhide non-qualifiers
+        try:
+            br.click('input[type="checkbox"]')
+            br.wait_load(10)
+        except spynner.SpynnerTimeout:
+            logging.error("timed out.")
+            # raise spynner.SpynnerTimeout
 
-    # grab the html before changing to csv
+        # grab the html before changing to csv
 
-    with open(html_path, 'w') as f:
-        f.write(br.html.encode('utf-8'))
+        with open(html_path, 'w') as f:
+            f.write(br.html.encode('utf-8'))
 
-    logging.info("HTML written.")
-    # convert table to csv on page. Will be contained in only <pre>
-    # fielding query ('span[tip$="values"]')[2] # third of 4
-    # for catchers (or fielders in general):
+        logging.info("HTML written.")
+        # convert table to csv on page. Will be contained in only <pre>
+        # fielding query ('span[tip$="values"]')[2] # third of 4
+        # for catchers (or fielders in general):
 
-    if url.find('fielding') == -1:
-        br.runjs("""jQuery('span[tip$="values"]:last').click()""")
-        br.wait(5)
-    else:
-        # this is nice and specific and should work for all postions, but doesn't.
-        # jq = """jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()"""
-
-        # catchers return extra values
-        if name[-1] != 'c':
-            br.runjs("""jQuery('span[tip$="values"]:eq(2)').click()""")  # old line
+        if url.find('fielding') == -1:
+            br.runjs("""jQuery('span[tip$="values"]:last').click()""")
+            br.wait(5)
         else:
-            br.runjs("""jQuery('span[tip$="values"]:eq(3)').click()""")  # old line
+            # this is nice and specific and should work for all postions, but doesn't.
+            # jq = """jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()"""
 
-        # br.runjs("""jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()""")
+            # catchers return extra values
+            if name[-1] != 'c':
+                br.runjs("""jQuery('span[tip$="values"]:eq(2)').click()""")  # old line
+            else:
+                br.runjs("""jQuery('span[tip$="values"]:eq(3)').click()""")  # old line
 
-        '''if br.runjs(query + '.length') > 1:
-            query += "[0]"
+            # br.runjs("""jQuery('span[tip$="values"][onclick^="table2csv(\'players_standard"]:first').click()""")
 
-        br.runjs(query + ".click()")
-        br.wait(5)'''
+            '''if br.runjs(query + '.length') > 1:
+                query += "[0]"
 
-    try:
-        soup = BeautifulSoup(br.html, 'html.parser')
-    except:
-        logging.debug("problems making soup.")
-        pass
-    # try this
-    # soup = soup.decode('utf-8', 'ignore')
-    pre_section = soup.find('pre').get_text()
-    # print "Type of pre_section: ",
-    # print type(pre_section)
-    # and try this too.
-    pre_section = pre_section.encode('ascii', 'replace')
-    pre_section = pre_section.replace('?', ' ')
-    with open(csv_path, 'w') as p:
-        p.write(pre_section.encode('utf-8'))
+            br.runjs(query + ".click()")
+            br.wait(5)'''
 
-    logging.info("CSV written.")
-    # f(x) freezing in REPL after successful execution
-    # tried the two lines below; didn't help
-    # br.destroy_webview()
-    # print "050"
-    try:
-        br.destroy_webview()
-        print "Before close."
-        br.close()
-        print "After close."
-    except BaseException as error:
-        print "Spynner problem closing browser. {}".format(error)
-        pass
+        try:
+            soup = BeautifulSoup(br.html, 'html.parser')
+        except:
+            logging.debug("problems making soup.")
+            pass
+        # try this
+        # soup = soup.decode('utf-8', 'ignore')
+        pre_section = soup.find('pre').get_text()
+        # print "Type of pre_section: ",
+        # print type(pre_section)
+        # and try this too.
+        pre_section = pre_section.encode('ascii', 'replace')
+        pre_section = pre_section.replace('?', ' ')
+        with open(csv_path, 'w') as p:
+            p.write(pre_section.encode('utf-8'))
+
+        logging.info("CSV written.")
+        # f(x) freezing in REPL after successful execution
+        # tried the two lines below; didn't help
+        # br.destroy_webview()
+        # print "050"
+        try:
+            br.destroy_webview()
+            print "Before close."
+            # br.close()
+            print "After close."
+        except BaseException as error:
+            print "Spynner problem closing browser. {}".format(error)
+            pass
     # br.close()
     # print "060"
     return None
