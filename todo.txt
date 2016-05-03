@@ -1,10 +1,9 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-add --verbose, dbpath flags 
+add dbpath flags 
 
-for verbose this looked cool:
-http://stackoverflow.com/questions/5980042/how-to-implement-the-verbose-or-v-option-into-a-script
+-x flag worked when it shouldn't have. - need a check "RUN insert here"
 
 make inserts for teams, playoffs, all-star etc.
 
