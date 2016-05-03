@@ -167,11 +167,13 @@ def fix_mismatches(stats_dict_maker):
                 # print mm
                 stats_dict[mm[0]] = stats_dict[mm[1]]
                 # print stats_dict[mm[1]]
-                logging.info("bbrefID changed to lahman: ")
+                # logging.info("bbrefID changed to lahman: ")
                 if len(stats_dict[mm[0]]) > 10:
-                    logging.info(stats_dict[mm[0]]['Name'])
+                    logging.info("bbrefID changed to lahman: " +
+                                 stats_dict[mm[0]]['Name'])
                 else:
-                    logging.info(stats_dict[mm[0]]['stint1']['Name'])
+                    logging.info("bbrefID changed to lahman: " +
+                                 stats_dict[mm[0]]['stint1']['Name'])
                 del stats_dict[mm[1]]
 
         cursor.close()
@@ -221,8 +223,8 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                     if row['Name'] != 'Name':
                         non_match.append(row['Name'])
 
-    logging.debug("non-match: ")
-    logging.debug(non_match)  # warning
+    logging.debug("non-match: " + str(non_match))
+    # logging.debug(non_match)  # warning
     return stats_dict
 
 
