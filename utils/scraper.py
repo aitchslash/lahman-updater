@@ -238,9 +238,9 @@ def get_data(url, name, year):
         # print "050"
         try:
             br.destroy_webview()
-            print "Before close."
+            # print "Before close."
             # br.close()
-            print "After close."
+            # print "After close."
         except BaseException as error:
             print "Spynner problem closing browser. {}".format(error)
             pass
