@@ -15,11 +15,6 @@ ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
 
 move testers and resets to utils
 
-update readme
-:  get lahman up and running
-:  edit db deets set db deets
-:  run --setup
-
 extra code in rookie_deets from when it updated
 
 examine batting stats on bbref to maybe get more
