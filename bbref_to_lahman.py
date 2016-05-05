@@ -369,6 +369,7 @@ def main():
     -d, --dbloginfile   path to db login details
     """
     options = process_args(sys.argv[1:])
+
     # toggle strict/expanded
     if options['strict'] is True:
         expanded = False
@@ -377,21 +378,10 @@ def main():
 
     # set logging level
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-    # print "len of levels: " + str(len(levels))
     level = levels[min(len(levels) - 1, options['verbose'])]
-    # print min(len(levels) - 1, options['verbose'])
-    # print level
-    # print options['verbose']
-
-    # logging.basicConfig(level=level, format="%(levelname)s %(message)s")
-
-    # logger = logging.getLogger('main')
     logger.setLevel(level)
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level)
-    # print type(level)
-    # print level
-    # print (level == logging.DEBUG)
     if level == logging.DEBUG:
         format = logging.Formatter('%(name)s %(levelname)s %(message)s')
     else:
@@ -400,17 +390,12 @@ def main():
     logger.addHandler(console_handler)
 
     '''
-    logging.info("This is an info test")
-    logging.warning("WARNING test.")
-    logging.error("E test.")
-    logging.critical("Boom.")
-    '''
-
     logger.info("This is an info test")
     logger.critical(logger.getEffectiveLevel())
     logger.warning("WARNING test.")
     logger.error("E test.")
     logger.critical("Boom.")
+    '''
 
     logger.debug("List of flags and their values:")
     for option in options:
