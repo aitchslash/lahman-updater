@@ -12,6 +12,13 @@ ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
 :	could nest id's like stints
 :	could rework w/ bbref as key (not as value)
 
+clean up scraper
+:	create webview when logging = DEBUG
+:	try browser = spynner.Browser(debug_level=spynner.CRITICAL)
+:	OK, that didn't work
+:	maybe redirect debug_stream
+:	that didn't work either (tried =None, =logging.DEBUG)
+
 move testers and resets to utils
 
 update readme
