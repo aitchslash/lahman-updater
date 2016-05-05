@@ -62,12 +62,15 @@ def get_db_login(path='data/db_details.txt'):
     return login_dict
 '''
 # database login info  # may have to pass this through funcs
-
-db = utils.db_tools.get_db_login()
-lahmandb = db['db']
-host = db['host']
-username = db['username']
-password = db['password']
+try:
+    db = utils.db_tools.get_db_login()
+    lahmandb = db['db']
+    host = db['host']
+    username = db['username']
+    password = db['password']
+except:
+    logger.warning("Problems accessing db. Will check if alt path given.")
+    pass
 
 
 def get_ids(page, fielding=False):
@@ -400,6 +403,25 @@ def main():
     logger.debug("List of flags and their values:")
     for option in options:
         logger.debug(str(option) + ': ' + str(options[option]))
+
+    # check for alternative db_login path
+    if options['dbloginfile'] != 'data/db_details':
+        # check it's a file
+        if os.path.isfile(options['dbloginfile']):
+            try:
+                db = utils.db_tools.get_db_login(options['dbloginfile'])
+                globals()['lahmandb'] = db['db']
+                globals()['host'] = db['host']
+                globals()['username'] = db['username']
+                globals()['password'] = db['password']
+            except Exception as error:
+                raise error
+                # sys.exit()
+
+        else:
+            logger.critical('The path you gave is not a file.')
+            logger.critical('Recheck or move to default data/db_details.txt')
+            sys.exit()
 
     try:
         latest_year = find_latest_year()
