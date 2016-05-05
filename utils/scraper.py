@@ -257,7 +257,7 @@ def get_data(url, name, year):
         if webview:
             try:
                 br.destroy_webview()
-                module_log.DEBUG("Before close.")
+                module_log.debug("Before close.")
                 # br.close()
                 # print "After close."
             except Exception as error:
