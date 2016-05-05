@@ -46,7 +46,7 @@ def closing(thing):
     try:
         yield thing
     finally:
-        with ignored(BaseException, AttributeError):
+        with ignored(BaseException, AttributeError, Exception):
             thing.close()
 
 
@@ -166,14 +166,16 @@ def get_data(url, name, year):
     # br = spynner.browser.Browser(embed_jquery=True,
     #                             debug_level=0,)
     # try a context manager
-    with closing(spynner.Browser()) as br:
+    with closing(spynner.Browser(debug_level=spynner.ERROR, debug_stream=logging.DEBUG)) as br:
         # url = url_start + year + url_end
 
         # the page takes a while to load, 10 was too little
         br.load(url, load_timeout=15)
-        br.create_webview()
+
+        # br.create_webview()
         # may want to get rid of show() - nice for debugging.
-        br.show()
+        # br.show()
+
         logging.info("Processing " + name)
         br.load_jquery(True)
         # unhide non-qualifiers
@@ -236,16 +238,18 @@ def get_data(url, name, year):
         # tried the two lines below; didn't help
         # br.destroy_webview()
         # print "050"
+        '''
         try:
-            br.destroy_webview()
-            # print "Before close."
+            # br.destroy_webview()
+            logging.DEBUG("Before close.")
             # br.close()
             # print "After close."
         except BaseException as error:
             print "Spynner problem closing browser. {}".format(error)
             pass
+        '''
     # br.close()
-    # print "060"
+    # logging.DEBUG("After close.")
     return None
 
 
