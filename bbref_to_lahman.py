@@ -360,7 +360,7 @@ def main():
 
     Flags:
     --setup             initial update of 2014 db to current data
-    --reset             reset db to 2014, removed expanded data if present
+    --reset             reset db to 2014, remove expanded data if present
     -v, --verbose       increase verbosity. default warnings only. -v add info, -vv add debug
     -x, --expand        enters expanded stats into db for year given
     -s, --strict        maintains schema of 2014 db
