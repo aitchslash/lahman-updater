@@ -8,7 +8,9 @@ from Chadwick Bureau.
 
 Can also be used to add expanded stats to prior years.
 
-Edit data/db_details.txt with your database access information.
+To get up and running:
+1) Edit data/db_details.txt with your database access information.
+2) Run with --setup and set --strict if you prefer the 2014 Lahman schema.
 
 Flags:
 --setup             initial update of 2014 db to current data

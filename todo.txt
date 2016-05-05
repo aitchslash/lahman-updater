@@ -1,10 +1,8 @@
 ToDo:
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
-add dbpath flags 
-
 -x flag worked when it shouldn't have. - need a check "RUN insert here"
-:	may nedd a check that year is prior to current season and/or data doesn't exist
+:	may need a check that year is prior to current season and/or data doesn't exist
 
 --addstats take a year go back and update with expanded stats (for year in past_years)
 
@@ -28,7 +26,8 @@ examine batting stats on bbref to maybe get more
 :   consider getting WAR - player value
 :	BAbip, OPS, SLG, OPS+ - advanced batting
 : 	line drive % - ratios
-:	can't find vs R, vs L
+: 	wOBA - ????
+:	can't find vs R, vs L -????
 
 think about how to deal w/ birthState hack to 2 chars
 mexican states.zip is available http://www.baseball-databank.org/files/tables/
