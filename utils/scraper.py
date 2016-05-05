@@ -135,6 +135,11 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     """Grab all data and write core files."""
     """Options for fielding data and bio data for rookies/master."""
     name_url_pairs = url_maker(year=year, fielding=fielding)
+    # if debugging warn about the webviews
+    if module_log.isEnabledFor(logging.DEBUG):
+        print "ALERT: Spynner windows should open."
+        print "ALERT: This throws more AttributeError(s)."
+        print "ALERT: No need to worry. They're uncaught but it all works."
     # loop over tuples and get_dats
     for pair in name_url_pairs:
         get_data(pair[1], pair[0], year)
@@ -170,9 +175,6 @@ def get_data(url, name, year):
 
     # if debugging open up the webviews
     if module_log.isEnabledFor(logging.DEBUG):
-        print "ALERT: Spynner windows should open."
-        print "ALERT: This throws more AttributeError(s)."
-        print "ALERT: No need to worry. They're uncaught but it all works."
         webview = True
     else:
         webview = False
@@ -259,7 +261,7 @@ def get_data(url, name, year):
                 # br.close()
                 # print "After close."
             except Exception as error:
-                print "Spynner problem closing browser. {}".format(error)
+                print "Spynner problem closing webview. {}".format(error)
                 pass
 
     # br.close()
