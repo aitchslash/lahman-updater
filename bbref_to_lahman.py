@@ -44,7 +44,9 @@ from utils.scraper import check_files, get_all_data, check_chadwick
 import utils.db_tools
 
 # just here for testing. will be moved to main once argparser config'ed
-# logging.basicConfig(level=logging.DEBUG, format='%(levelname)s %(message)s')
+# logger.basicConfig(level=logger.DEBUG, format='%(levelname)s %(message)s')
+
+logger = logging.getLogger('main')
 
 people_csv = 'data/people.csv'
 
@@ -93,7 +95,7 @@ def get_ids(page, fielding=False):
         if name[-1].isalnum() is False:
             name = name[:-1]
         if name.find(' ') == -1:  # error checking
-            logging.warning("Missing name for: {}".format(name))
+            logger.warning("Missing name for: {}".format(name))
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
         # assert name_bbref_dict.has_key(name) is False
@@ -167,13 +169,13 @@ def fix_mismatches(stats_dict_maker):
                 # print mm
                 stats_dict[mm[0]] = stats_dict[mm[1]]
                 # print stats_dict[mm[1]]
-                # logging.info("bbrefID changed to lahman: ")
+                # logger.info("bbrefID changed to lahman: ")
                 if len(stats_dict[mm[0]]) > 10:
-                    logging.info("bbrefID changed to lahman: " +
-                                 stats_dict[mm[0]]['Name'])
+                    logger.info("bbrefID changed to lahman: " +
+                                stats_dict[mm[0]]['Name'])
                 else:
-                    logging.info("bbrefID changed to lahman: " +
-                                 stats_dict[mm[0]]['stint1']['Name'])
+                    logger.info("bbrefID changed to lahman: " +
+                                stats_dict[mm[0]]['stint1']['Name'])
                 del stats_dict[mm[1]]
 
         cursor.close()
@@ -223,8 +225,8 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                     if row['Name'] != 'Name':
                         non_match.append(row['Name'])
 
-    logging.debug("non-match: " + str(non_match))
-    # logging.debug(non_match)  # warning
+    logger.debug("non-match: " + str(non_match))
+    # logger.debug(non_match)  # warning
     return stats_dict
 
 
@@ -233,7 +235,7 @@ def get_columns(table):
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     statement = "SHOW columns FROM %s" % (table)
-    logging.debug(statement)  # nb, test line
+    logger.debug(statement)  # nb, test line
     cursor.execute(statement)
     query_results = cursor.fetchall()
     cursor.close()
@@ -250,7 +252,7 @@ def make_team_dict():
                    WHERE yearID = 2012'''
     cursor.execute(statement)
     team_tuples = cursor.fetchall()
-    # logging.debug(len(team_tuples))
+    # logger.debug(len(team_tuples))
     cursor.close()
     team_dict = {team[1]: team[0] for team in team_tuples}
     return team_dict
@@ -315,7 +317,7 @@ def test_utd(year):
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     pitching_dict = expand_pitch_stats(pitching_dict, year)
     us = update_table_data(pitching_dict, pitching_cols, year, 'pitching')
-    logging.debug(us)
+    logger.debug(us)
     return pitching_dict
 
 
@@ -380,16 +382,39 @@ def main():
     # print min(len(levels) - 1, options['verbose'])
     # print level
     # print options['verbose']
-    logging.basicConfig(level=level, format="%(levelname)s %(message)s")
+
+    # logging.basicConfig(level=level, format="%(levelname)s %(message)s")
+
+    # logger = logging.getLogger('main')
+    logger.setLevel(level)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(level)
+    # print type(level)
+    # print level
+    # print (level == logging.DEBUG)
+    if level == logging.DEBUG:
+        format = logging.Formatter('%(name)s %(levelname)s %(message)s')
+    else:
+        format = logging.Formatter('%(message)s')
+    console_handler.setFormatter(format)
+    logger.addHandler(console_handler)
+
     '''
     logging.info("This is an info test")
     logging.warning("WARNING test.")
     logging.error("E test.")
     logging.critical("Boom.")
     '''
-    logging.debug("List of flags and their values:")
+
+    logger.info("This is an info test")
+    logger.critical(logger.getEffectiveLevel())
+    logger.warning("WARNING test.")
+    logger.error("E test.")
+    logger.critical("Boom.")
+
+    logger.debug("List of flags and their values:")
     for option in options:
-        logging.debug(str(option) + ': ' + str(options[option]))
+        logger.debug(str(option) + ': ' + str(options[option]))
 
     try:
         latest_year = find_latest_year()
@@ -412,7 +437,7 @@ def main():
     if options['chadwick'] and options['ignore'] is False:
         fresh = check_chadwick
         if fresh:
-            logging.info("Chadwick data fresh")
+            logger.info("Chadwick data fresh")
             options['chadwick'] = False
     '''
     if options['chadwick']:
@@ -429,22 +454,22 @@ def main():
 
     if options['reset']:
         reset_db()
-        logging.info("Database reset to 2014.")
+        logger.info("Database reset to 2014.")
         sys.exit()
 
     if options['setup']:
         print "This may take a while. Have a coffee."
-        logging.debug("Run setup() here.")
-        logging.info('reset_db')
+        logger.debug("Run setup() here.")
+        logger.info('reset_db')
         reset_db()
 
         # make sure the Chicago 'teams' errata is fixed
         utils.db_tools.fix_chicago_team_data()
 
         for year in range(2015, int(current_season) + 1):
-            logging.debug('get_all_data for ' + str(year))
+            logger.debug('get_all_data for ' + str(year))
             get_all_data(str(year), fielding=True)
-            logging.debug('check data')
+            logger.debug('check data')
             past_due, exists = check_files(str(year), expiry=1, fielding=True)
             if past_due or exists is False:
                 print "Data Fetch went awry. Please run with --setup again."
@@ -477,8 +502,9 @@ def main():
     # if (forced and this year) or current year data is expired or data missing: get data
     if ((options['ignore'] and str(options['year']) == current_season) or
        (past_due and str(options['year']) == current_season) or not exists):
-        logging.info("Getting data from baseball-reference.")
-        print "ALERT: Spynner windows may open."
+        logger.info("Getting data from baseball-reference.")
+        logger.debug("ALERT: Spynner windows may open.")
+        print 'ALERT: This will take at least a minute.'
         print "ALERT: Ignore uncaught AttributeError"
         past_due, exists = get_all_data(year=options['year'], expiry=options['expiry'],
                                         fielding=options['fielding'], chadwick=options['chadwick'])
@@ -490,7 +516,7 @@ def main():
     # OK, data gotten if needed.
     # if current year, run insert
     if str(options['year']).strip() == str(current_season).strip():
-        logging.debug("Run insert here.")
+        logger.debug("Run insert here.")
         tables = ['batting', 'pitching', 'fielding']
         if not options['fielding']:
             tables.pop()
@@ -505,7 +531,7 @@ def main():
                     fielding=options['fielding'])
     # else year earlier and data in both files and database - update with expanded.
     elif options['expand'] is True or options['ignore'] is True:
-        logging.debug("Run update here")
+        logger.debug("Run update here")
         insert_year(year=options['year'], expanded=True, fielding=False, action='update')
     else:
         print "Something wrong with arg logic. Here's their current settings:"
@@ -521,8 +547,8 @@ def ins_table_data(table_data, cols_array, year, table='batting'):
         insert_player = insert_batter
     else:
         insert_player = insert_pitcher
-    logging.info('setup run, opening db...')
-    logging.info('inserting into ' + table + "...")
+    logger.info('setup run, opening db...')
+    logger.info('inserting into ' + table + "...")
     mydb = pymysql.connect(host, username, password, lahmandb)
     cursor = mydb.cursor()
     for key in table_data.keys():
@@ -575,13 +601,13 @@ def ins_fielding(year):
     team_dict = make_team_dict()
     cols = get_columns('fielding')
 
-    logging.info('setup run, opening db...')
+    logger.info('setup run, opening db...')
 
     for pos in positions:
         csv_path, html_path = make_paths(pos, year)
         pos_data = get_ids(html_path, fielding=True)
         pos_dict = make_bbrefid_stats_dict(csv_path, pos_data, pos)
-        logging.info('inserting into ' + "fielding " + pos + " ...")
+        logger.info('inserting into ' + "fielding " + pos + " ...")
         mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         for key in pos_dict.keys():
@@ -589,7 +615,7 @@ def ins_fielding(year):
             for statement in statements:
                 cursor.execute(statement)
         mydb.commit()
-        logging.info("data committed")
+        logger.info("data committed")
         cursor.close()
     return
 
@@ -684,14 +710,14 @@ def expand_pitch_stats(pitching_dict, year=current_season):
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
-    # logging.debug(len(sd.keys()))
-    # logging.debug(len(pitching_dict.keys()))
+    # logger.debug(len(sd.keys()))
+    # logger.debug(len(pitching_dict.keys()))
     for key in sd.keys():
         if key not in pitching_dict.keys():
-            logging.debug(key)
+            logger.debug(key)
     for key in pitching_dict.keys():
         if key not in sd.keys():
-            logging.debug(key)
+            logger.debug(key)
     assert sd.keys() == pitching_dict.keys()
 
     for p_id in sd.keys():
@@ -749,8 +775,8 @@ def reset_db():
                      'ERAplus', 'FIP', 'PA', 'SOperW']
 
     if 'FIP' in get_columns('pitching'):
-        logging.info("Dropping expanded pitching stats.")
-        logging.info("Dropping mlbID from master")
+        logger.info("Dropping expanded pitching stats.")
+        logger.info("Dropping mlbID from master")
         statement = "ALTER TABLE pitching "
         for col in exp_p_columns:
             statement += "DROP COLUMN {}, ".format(col)
@@ -764,7 +790,7 @@ def reset_db():
         mydb.commit()
         cursor.close()
 
-    logging.info("database reset to 2014.")
+    logger.info("database reset to 2014.")
 
 
 def find_rookies(id_set):  # pass in id_dict, erase lines that generate it
@@ -792,7 +818,7 @@ def populate_master(rookie_set, year, expanded=True):
     #   if not insert mlbamID
     if len(cols) == 24 and expanded is True:
         utils.db_tools.add_mlbamid_master()
-        logging.info("trying to add mlbamID to master")
+        logger.info("trying to add mlbamID to master")
     else:
         assert len(cols) == 25
 
@@ -818,7 +844,7 @@ def populate_master(rookie_set, year, expanded=True):
         try:
             rookie_data.update(ppl_dict[rookie])
         except KeyError:
-            logging.warning("Chadwick missing data for: " + rookie)
+            logger.warning("Chadwick missing data for: " + rookie)
         # set finalGame
         rookie_data['finalGame'] = "'" + year + "-12-31 00:00:00'"
         for col in cols:
@@ -838,7 +864,7 @@ def populate_master(rookie_set, year, expanded=True):
                 statement += 'NULL, '
         statement = statement[:-2] + ")"
         if len(statement) > 550:
-            logging.warning("too_long: " + statement)
+            logger.warning("too_long: " + statement)
 
         cursor.execute(statement)
         time.sleep(0.5)
@@ -868,11 +894,11 @@ def rookie_deets(rookie_id):
         carrots = carrots.split(',')
         carrots = [carrot.encode('utf-8').strip() for carrot in carrots]
     else:
-        logging.error("something went wrong. Here, have some carrots.")
+        logger.error("something went wrong. Here, have some carrots.")
         return carrots
     # bi -> index of bats in carrots.  Mult positions throws this off
     bi = [ndx for ndx, item in enumerate(carrots) if item.startswith('Bats')]
-    # logging.debug(carrots)
+    # logger.debug(carrots)
     bi = bi[0]
     bats = carrots[bi][carrots[bi].find(" ") + 1]
     update_string += "bats='" + bats + "', "

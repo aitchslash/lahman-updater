@@ -29,6 +29,8 @@ year = '2016'  # just here so pep-8 stops complaining
 # useragent = "Mozilla/5.0 (Windows NT 6.1; rv:7.0.1)
 # Gecko/20100101 Firefox/7.0.1"
 
+module_log = logging.getLogger('main.scraper')
+
 
 @contextmanager
 def ignored(*exceptions):
@@ -86,7 +88,7 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     data_dir = os.path.join('', 'data', 'data' + str(year))
     # loggin.debug(data_dir)
     if os.path.isdir(data_dir) is False:
-        logging.warning("Data dir for " + str(year) + " is missing.")
+        module_log.warning("Data dir for " + str(year) + " is missing.")
         return True, False  # past_due, exists  # nb, uglyish
     f_names = os.listdir(data_dir)
     arms_bats = [i for i in f_names if (i.find('arms') + i.find('bats')) != -2]
@@ -110,7 +112,7 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
         # nb, this if block is likely redundant
         if os.path.isfile(os.path.join(data_dir, f)) is False:
             exists = False
-            logging.warning(f + " not found.")
+            module_log.warning(f + " not found.")
             return True, False  # past_due, exists  # nb, ugly
         created = os.path.getmtime(os.path.join(data_dir, f))
         age = now - created
@@ -123,9 +125,9 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     for path in paths:
         assert os.path.getsize(path) > 0
         if os.path.getsize(path) < 10000:
-            logging.warning("Alert: " + path + " is very small.")
+            module_log.warning("Alert: " + path + " is very small.")
     if past_due:
-        logging.warning("Alert: files are more than {} day(s) old.".format(expiry))
+        module_log.warning("Alert: files are more than {} day(s) old.".format(expiry))
     return past_due, exists
 
 
@@ -142,7 +144,7 @@ def get_all_data(year=year, expiry=1, fielding=False, chadwick=False):
     # Check if data is there, new and in range of len
     past_due, exists = check_files(year, expiry, fielding=fielding)  # , chadwick=chadwick)
     if past_due is False and exists is True:
-        logging.info("Files now up to date.")
+        module_log.info("Files now up to date.")
     return past_due, exists
 
 
@@ -157,7 +159,7 @@ def get_data(url, name, year):
     # cwd = os.path.getcwd()
     stats_dir = os.path.join('', 'data', 'data' + str(year))
     if os.path.isdir(stats_dir) is False:
-        logging.info("Need to make directory.")
+        module_log.info("Need to make directory.")
         os.mkdir(stats_dir)
     csv_path = os.path.join(stats_dir, name + '.csv')
     html_path = os.path.join(stats_dir, name + '.shtml')
@@ -165,25 +167,37 @@ def get_data(url, name, year):
     # br = spynner.Browser()  # old error-throwing, yet funcitonal
     # br = spynner.browser.Browser(embed_jquery=True,
     #                             debug_level=0,)
+
+    # if debugging open up the webviews
+    if module_log.isEnabledFor(logging.DEBUG):
+        print "ALERT: Spynner windows should open."
+        print "ALERT: This throws more AttributeError(s)."
+        print "ALERT: No need to worry. They're uncaught but it all works."
+        webview = True
+    else:
+        webview = False
+
     # try a context manager
-    with closing(spynner.Browser(debug_level=spynner.ERROR, debug_stream=logging.DEBUG)) as br:
+    # with closing(spynner.Browser(debug_level=spynner.ERROR, debug_stream=module_log.DEBUG)) as br:
+    with closing(spynner.Browser()) as br:
         # url = url_start + year + url_end
 
         # the page takes a while to load, 10 was too little
         br.load(url, load_timeout=15)
 
-        # br.create_webview()
-        # may want to get rid of show() - nice for debugging.
-        # br.show()
+        if webview:
+            br.create_webview()
+            # may want to get rid of show() - nice for debugging.
+            br.show()
 
-        logging.info("Processing " + name)
+        module_log.info("Processing " + name)
         br.load_jquery(True)
         # unhide non-qualifiers
         try:
             br.click('input[type="checkbox"]')
             br.wait_load(10)
         except spynner.SpynnerTimeout:
-            logging.error("timed out.")
+            module_log.error("timed out.")
             # raise spynner.SpynnerTimeout
 
         # grab the html before changing to csv
@@ -191,7 +205,7 @@ def get_data(url, name, year):
         with open(html_path, 'w') as f:
             f.write(br.html.encode('utf-8'))
 
-        logging.info("HTML written.")
+        module_log.info("HTML written.")
         # convert table to csv on page. Will be contained in only <pre>
         # fielding query ('span[tip$="values"]')[2] # third of 4
         # for catchers (or fielders in general):
@@ -220,7 +234,7 @@ def get_data(url, name, year):
         try:
             soup = BeautifulSoup(br.html, 'html.parser')
         except:
-            logging.debug("problems making soup.")
+            module_log.debug("problems making soup.")
             pass
         # try this
         # soup = soup.decode('utf-8', 'ignore')
@@ -233,23 +247,23 @@ def get_data(url, name, year):
         with open(csv_path, 'w') as p:
             p.write(pre_section.encode('utf-8'))
 
-        logging.info("CSV written.")
+        module_log.info("CSV written.")
         # f(x) freezing in REPL after successful execution
         # tried the two lines below; didn't help
         # br.destroy_webview()
         # print "050"
-        '''
-        try:
-            # br.destroy_webview()
-            logging.DEBUG("Before close.")
-            # br.close()
-            # print "After close."
-        except BaseException as error:
-            print "Spynner problem closing browser. {}".format(error)
-            pass
-        '''
+        if webview:
+            try:
+                br.destroy_webview()
+                module_log.DEBUG("Before close.")
+                # br.close()
+                # print "After close."
+            except Exception as error:
+                print "Spynner problem closing browser. {}".format(error)
+                pass
+
     # br.close()
-    # logging.DEBUG("After close.")
+    # module_log.DEBUG("After close.")
     return None
 
 
@@ -264,16 +278,16 @@ def check_chadwick():
     file_exists = os.path.exists(csv_path)
     if file_exists:
         file_size = os.path.getsize(csv_path)
-        logging.debug(file_size)
+        module_log.debug(file_size)
         if file_size < 35000000:
-            logging.warning('Current version of Chadwick too small')
+            module_log.warning('Current version of Chadwick too small')
             fresh = False
         elif file_size < 37000000:
-            logging.debug("Right size.")
+            module_log.debug("Right size.")
         else:
-            logging.warning("ALERT: Chadwick is very big.")
+            module_log.warning("ALERT: Chadwick is very big.")
     else:
-        logging.warning("File missing from path.")
+        module_log.warning("File missing from path.")
         fresh = False
         return fresh
 
@@ -290,19 +304,19 @@ def check_chadwick():
     #   assert that the page is as expected i.e. len results == 2
     assert len(ages_of_files) == 2
     date_string = ages_of_files[0].text.encode('ascii').strip('\n')
-    logging.debug(date_string)
+    module_log.debug(date_string)
     struct_time = datetime.datetime.strptime(date_string, '%B %d, %Y')
     git_created_time = time.mktime(struct_time.timetuple()) + one_day
     # if chadwick isn't fresh return False
     # unlikely, using modified rather than created, but worthwhile
     if git_created_time > last_modified:
-        logging.debug(now - git_created_time)
-        logging.debug(now - last_modified)
-        logging.info("Chadwick more recent than current file.")
+        module_log.debug(now - git_created_time)
+        module_log.debug(now - last_modified)
+        module_log.info("Chadwick more recent than current file.")
         fresh = False
     # chadwick says they update every 5 days or so
     elif now - git_created_time > six_days:
-        logging.info("Chadwick less than 5 days old")
+        module_log.info("Chadwick less than 5 days old")
         fresh = False
     return fresh
 
