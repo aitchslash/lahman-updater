@@ -6,6 +6,8 @@ ToDo:
 
 --addstats take a year go back and update with expanded stats (for year in past_years)
 
+requirements - spynner, pymysql
+
 make inserts for teams, playoffs, all-star etc.
 
 ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
