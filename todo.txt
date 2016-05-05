@@ -4,6 +4,9 @@ ToDo:
 add dbpath flags 
 
 -x flag worked when it shouldn't have. - need a check "RUN insert here"
+:	may nedd a check that year is prior to current season and/or data doesn't exist
+
+--addstats take a year go back and update with expanded stats (for year in past_years)
 
 make inserts for teams, playoffs, all-star etc.
 
