@@ -9,6 +9,7 @@ from Chadwick Bureau.
 Can also be used to add expanded stats to prior years.
 
 ##To get up and running:
+* requires spynner, beautifulsoup and pymysql
 * Edit data/db_details.txt with your database access information.
 * Run with --setup and set --strict if you prefer the 2014 Lahman schema.
 

@@ -8,6 +8,8 @@ ToDo:
 
 requirements - spynner, pymysql
 
+license.
+
 make inserts for teams, playoffs, all-star etc.
 
 ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
