@@ -6,7 +6,7 @@ ToDo:
 
 --addstats take a year go back and update with expanded stats (for year in past_years)
 
-requirements - spynner, pymysql
+requirements - spynner, pymysql, beautifulsoup4
 
 license.
 
@@ -30,3 +30,7 @@ examine batting stats on bbref to maybe get more
 
 think about how to deal w/ birthState hack to 2 chars
 mexican states.zip is available http://www.baseball-databank.org/files/tables/
+
+looks like last digit alnum checking in get_ids and make_bbref_stats_dict might be duplicates
+
+clean up prints from get_ids, make_bbref_stats_dict, and new f(x)
