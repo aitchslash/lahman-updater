@@ -95,14 +95,43 @@ def get_ids(page, fielding=False):
         name = (tag.parent.text)  # old working (pre-scraper) line
         name = name.encode('ascii', 'replace')  # .decode('ascii')
         name = name.replace('?', ' ')
+        # strip off non alnum if there
         if name[-1].isalnum() is False:
             name = name[:-1]
         if name.find(' ') == -1:  # error checking
             logger.warning("Missing name for: {}".format(name))
         addy = str(tag['href'])
         bbref_id = addy[addy.rfind('/') + 1: addy.rfind('.')]
-        # assert name_bbref_dict.has_key(name) is False
-        name_bbref_dict[name] = bbref_id
+        # deal w/ duplicate names (e.g. Chris Carpenter in 2011)
+        if name in name_bbref_dict and name_bbref_dict[name] != bbref_id:
+            # if there's only one entry it's a string.
+            if isinstance(name_bbref_dict[name], str):
+                # change entry to a list of ids
+                name_bbref_dict[name] = [name_bbref_dict[name], bbref_id]
+                # print name + " : listed"
+            # more than one and we should have a list
+            elif isinstance(name_bbref_dict[name], list) and bbref_id not in name_bbref_dict[name]:
+                # if not already there append id
+                name_bbref_dict[name].append(bbref_id)
+                # would be very unusual to have > 2 players with identical names
+                logger.warning('Three or more players with name: %s' % name)
+            # let's just check things went OK
+            else:
+                # print bbref_id
+                # repr(bbref_id)
+                # print name_bbref_dict[name]
+                assert bbref_id in name_bbref_dict[name]
+
+            '''
+            # check for duplicate names (e.g. Chris Carpenter in 2011)
+            # if name_bbref_dict.has_key(name):  # old line
+            if name in name_bbref_dict:
+                # tack on digit from bbref to duplicate name(s)
+                name += bbref_id[-1]
+                # print name
+            '''
+        else:
+            name_bbref_dict[name] = bbref_id
 
     return name_bbref_dict  # soup is only temporary
 
@@ -194,6 +223,8 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
 
     stats_dict = {}
     non_match = []
+    logger.info('Processing %s' % bbref_csv)
+    year_of_csv = os.path.split(bbref_csv)[0][-4:]
     with open(bbref_csv, "rb") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
@@ -205,12 +236,19 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
             name = row['Name']
             if row['Tm'] != 'TOT':
                 try:
+                    # csv's names sometimes have an extra character
                     if name[-1].isalnum() is False:
                         # remove trailing character from name
                         row['Name'] = row['Name'][:-1]
+
                     bbref_id = name_bbref_dict[row['Name']]
+                    if isinstance(bbref_id, list):
+                        yob = int(year_of_csv) - int(row['Age'])
+                        logger.debug("Duplicate names found. This slows things a bit.")
+                        bbref_id = match_stats_to_id_by_age(yob, bbref_id)
                     # check for existing entry
-                    if bbref_id not in stats_dict.keys():
+                    # if bbref_id not in stats_dict.keys():  # .keys() redundant?
+                    if bbref_id not in stats_dict:
                         stats_dict[bbref_id] = row
                     # then entry exists check if stints haven't been used
                     elif len(stats_dict[bbref_id]) > 10:
@@ -229,8 +267,38 @@ def make_bbrefid_stats_dict(bbref_csv, name_bbref_dict, table='batting'):
                         non_match.append(row['Name'])
 
     logger.debug("non-match: " + str(non_match))
-    # logger.debug(non_match)  # warning
     return stats_dict
+
+
+def match_stats_to_id_by_age(implied_year_of_birth, player_id_list, margin_of_error=1):
+    """Return correct bbref_id, sorted by age."""
+    if margin_of_error >= 1:
+        yob_query = '''BETWEEN {} and {}'''.format(implied_year_of_birth - margin_of_error,
+                                                   implied_year_of_birth + margin_of_error)
+    else:
+        yob_query = '= ' + str(implied_year_of_birth)
+    id_query = "("
+    for item in player_id_list:
+        id_query += "'" + item + "', "
+    id_query = id_query[:-2] + ')'
+    mydb = pymysql.connect(host, username, password, lahmandb)
+    cursor = mydb.cursor()
+    statement = '''SELECT bbrefID FROM master
+                   WHERE birthYear {} AND
+                   playerID in {}'''.format(yob_query, id_query)
+    cursor.execute(statement)
+    results = cursor.fetchall()
+    assert results
+    if len(results) > 1 and margin_of_error >= 1:
+        logger.debug("same names, trying again by reducing MOError.")
+        match_stats_to_id_by_age(implied_year_of_birth, player_id_list, margin_of_error - 1)
+    elif len(results) > 1:
+        print "Problems resolving matching ids for {}".format(player_id_list)
+    else:
+        assert len(results) == 1
+    cursor.close()
+    assert len(results[0][0]) == 9
+    return results[0][0]
 
 
 def get_columns(table):
