@@ -1,4 +1,8 @@
 ToDo:
+REORGANIZE
+--- check paths.
+
+
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
 -x flag worked when it shouldn't have. - need a check "RUN insert here"
