@@ -9,7 +9,8 @@ default the update expands the original fields to include expanded data (e.g. OP
 The expansion of the database can be disabled by using the -s or --strict flag.
 
 Notes:
-1) Adding mlb advanced media ID as default.  Using INT(11)
+1) Assumes you are using lahman 2014 version.  When tested on 2012 differences
+:   in structure and data types both threw errors.
 2) Ensure that "Hide non-qualifiers for rate stats" is the same on all docs
 :   if importing by hand.
 3) Stint is not assured to be correct. Relies on bbref order
@@ -27,8 +28,7 @@ Notes:
 10) Adjusting wait_load in utils/scraper.py is a tradeoff: speed/reliability
 11) Rookie missing from Chadwick (34 as of Apr 13/16)
 :   SELECT * FROM master WHERE bbrefID IS NULL
-12) Assumes you are using lahman 2014 version.  When tested on 2012 differences
-:   in structure and data types both threw errors.
+12) Adding mlb advanced media ID as default.  Using INT(11)
 """
 
 import sys
