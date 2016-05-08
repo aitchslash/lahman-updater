@@ -6,16 +6,15 @@ ToDo:
 
 --addstats take a year go back and update with expanded stats (for year in past_years)
 
-requirements - spynner, pymysql, beautifulsoup4
-
 license.
 
-make inserts for teams, playoffs, all-star etc.
+terse flag?
 
-ensure that duplicate names (e.g. Chris Carpenter 2011) are taken care of
-:   put an assertion in get_ids - should deal w/ it better
-:	could nest id's like stints
-:	could rework w/ bbref as key (not as value)
+cleanup html/csv after use? 
+
+@timeit??
+
+make inserts for teams, playoffs, all-star etc.
 
 move testers and resets to utils
 
@@ -30,7 +29,3 @@ examine batting stats on bbref to maybe get more
 
 think about how to deal w/ birthState hack to 2 chars
 mexican states.zip is available http://www.baseball-databank.org/files/tables/
-
-looks like last digit alnum checking in get_ids and make_bbref_stats_dict might be duplicates
-
-clean up prints from get_ids, make_bbref_stats_dict, and new f(x)
