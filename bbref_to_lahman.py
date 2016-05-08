@@ -514,18 +514,6 @@ def main():
         if fresh:
             logger.info("Chadwick data fresh")
             options['chadwick'] = False
-    '''
-    if options['chadwick']:
-        if options['ignore'] is False:
-            fresh = check_chadwick()
-        else:
-            fresh = False
-        if fresh:
-            print "Chadwick data fresh"
-            options['chadwick'] = False
-        else:
-            print "Chadwick out of date.  Getting..."
-    '''
 
     if options['reset']:
         reset_db()
