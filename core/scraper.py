@@ -85,7 +85,7 @@ def check_files(year=year, expiry=1, fielding=False):  # , chadwick=False):
     """Set expiry to ensure that files are only 'expiry' days old."""
     """Intended to be run as import from main dir.  Paths are affected."""
     past_due, exists = False, True
-    data_dir = os.path.join('', 'data', 'data' + str(year))
+    data_dir = os.path.join('..', 'data', 'data' + str(year))
     # loggin.debug(data_dir)
     if os.path.isdir(data_dir) is False:
         module_log.warning("Data dir for " + str(year) + " is missing.")
@@ -162,7 +162,7 @@ def get_data(url, name, year):
     # make the paths for the files
     # and the directory if needed
     # cwd = os.path.getcwd()
-    stats_dir = os.path.join('', 'data', 'data' + str(year))
+    stats_dir = os.path.join('..', 'data', 'data' + str(year))
     if os.path.isdir(stats_dir) is False:
         module_log.info("Need to make directory.")
         os.mkdir(stats_dir)
@@ -271,7 +271,7 @@ def get_data(url, name, year):
 
 def check_chadwick():
     """Verify that there is new data in the current chadwick repository."""
-    csv_path = 'data/people.csv'
+    csv_path = os.path.join('..', 'data', 'people.csv')  # '../data/people.csv'
     fresh = True
     now = time.time()
     one_day = 60 * 60 * 24
@@ -329,7 +329,7 @@ def get_biographical():
     url += 'register/master/data/people.csv'
     print "Getting Chadwick Bureau data."
     print "~35MB file. This may take a minute."
-    chad_path = os.path.join('', 'data')
+    chad_path = os.path.join('..', 'data')
     browser = spynner.Browser()
     cb_csv = browser.download(url)
     with open(os.path.join(chad_path, 'people.csv'), 'w') as cb:

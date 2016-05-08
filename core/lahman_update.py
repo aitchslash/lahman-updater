@@ -17,7 +17,7 @@ Notes:
 4) no recorded out leads to an infinite ERA - using 99.99
 5) TeamID's for Chicago teams seem odd (Cubs = CHA, WS = CHN) in 'teams' table
 :   seems only to be for 2013 and 2014 (only looked at 2014db)
-:   should be fixed by running setup or utils.db_tools.fix_chicago_team_data()
+:   should be fixed by running setup or db_tools.fix_chicago_team_data()
 6) Setting new players last game to year-12-31 so they're easy to find
 7) Rookie insert requires a page scrape per player so takes a while on first run
 8) Rookie birthState truncated to 2 chars
@@ -39,16 +39,16 @@ import time
 import logging
 from bs4 import BeautifulSoup
 import pymysql
-from utils.argparser import process_args, set_default_season
-from utils.scraper import check_files, get_all_data, check_chadwick
-import utils.db_tools
+from argparser import process_args, set_default_season
+from scraper import check_files, get_all_data, check_chadwick
+import db_tools
 
 # just here for testing. will be moved to main once argparser config'ed
 # logger.basicConfig(level=logger.DEBUG, format='%(levelname)s %(message)s')
 
 logger = logging.getLogger('main')
 
-people_csv = 'data/people.csv'
+people_csv = os.path.join('..', 'data', 'people.csv')  # '../data/people.csv'
 
 current_season = set_default_season()
 
@@ -63,7 +63,7 @@ def get_db_login(path='data/db_details.txt'):
 '''
 # database login info  # may have to pass this through funcs
 try:
-    db = utils.db_tools.get_db_login()
+    db = db_tools.get_db_login()
     lahmandb = db['db']
     host = db['host']
     username = db['username']
@@ -332,17 +332,17 @@ def make_team_dict():
 def insert_year(year=current_season, expanded=True, fielding=False, action='insert'):
     """Update/Insert lahmandb with given year stats."""
     """Checks data files in place.  Assumes no existing data."""
-    bats_html = os.path.join('', 'data', 'data' + str(year), 'bats.shtml')
+    bats_html = os.path.join('..', 'data', 'data' + str(year), 'bats.shtml')
     assert os.path.isfile(bats_html)
     ids = get_ids(bats_html)
-    arms_html = os.path.join('', 'data', 'data' + str(year), 'arms.shtml')
+    arms_html = os.path.join('..', 'data', 'data' + str(year), 'arms.shtml')
     assert os.path.isfile(arms_html)
     p_ids = get_ids(arms_html)
-    bats_csv = os.path.join('', 'data', 'data' + str(year), 'bats.csv')
+    bats_csv = os.path.join('..', 'data', 'data' + str(year), 'bats.csv')
     assert os.path.isfile(bats_csv)
     batting_dict = make_bbrefid_stats_dict(bats_csv, ids, table='batting')
     # old lines commented out, might be useful if not adding expanded data
-    arms_csv = os.path.join('', 'data', 'data' + str(year), 'arms.csv')
+    arms_csv = os.path.join('..', 'data', 'data' + str(year), 'arms.csv')
     assert os.path.isfile(arms_csv)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
     # a, pitching_dict, c = expand_p_test()
@@ -351,7 +351,7 @@ def insert_year(year=current_season, expanded=True, fielding=False, action='inse
     # if pitching cols need to be added i.e. != 40 or == 30
     if expanded is True:
         if len(pitching_cols) < 31:
-            utils.db_tools.add_pitching_columns()
+            db_tools.add_pitching_columns()
             pitching_cols = get_columns('pitching')
         pitching_dict = expand_pitch_stats(pitching_dict, year)
     # team_dict = make_team_dict()
@@ -381,8 +381,8 @@ def insert_year(year=current_season, expanded=True, fielding=False, action='inse
 
 def test_utd(year):
     """Test."""
-    arms_html = os.path.join('', 'data', 'data' + year, 'arms.shtml')
-    arms_csv = os.path.join('', 'data', 'data' + year, 'arms.csv')
+    arms_html = os.path.join('..', 'data', 'data' + year, 'arms.shtml')
+    arms_csv = os.path.join('..', 'data', 'data' + year, 'arms.csv')
     pitching_cols = get_columns('pitching')
     p_ids = get_ids(arms_html)
     pitching_dict = make_bbrefid_stats_dict(arms_csv, p_ids, table='pitching')
@@ -477,7 +477,7 @@ def main():
         # check it's a file
         if os.path.isfile(options['dbloginfile']):
             try:
-                db = utils.db_tools.get_db_login(options['dbloginfile'])
+                db = db_tools.get_db_login(options['dbloginfile'])
                 globals()['lahmandb'] = db['db']
                 globals()['host'] = db['host']
                 globals()['username'] = db['username']
@@ -497,7 +497,7 @@ def main():
         print("Error connecting to database.")
         # check db path is file
         try:
-            login_dict = utils.db_tools.get_db_login(options['dbloginfile'])
+            login_dict = db_tools.get_db_login(options['dbloginfile'])
             if len(login_dict) != 4:
                 print "Something is wrong with your db login file."
                 print "Please check the file and try again."
@@ -527,7 +527,7 @@ def main():
         reset_db()
 
         # make sure the Chicago 'teams' errata is fixed
-        utils.db_tools.fix_chicago_team_data()
+        db_tools.fix_chicago_team_data()
 
         for year in range(2015, int(current_season) + 1):
             logger.debug('get_all_data for ' + str(year))
@@ -767,10 +767,10 @@ def insert_pitcher(key, stats_dict, team_dict, fields_array, year):
 
 def expand_pitch_stats(pitching_dict, year=current_season):
     """Add new stats to pitching_dict."""
-    arms_exp_html = os.path.join('', 'data', 'data' + str(year), 'arms_extra.shtml')
+    arms_exp_html = os.path.join('..', 'data', 'data' + str(year), 'arms_extra.shtml')
     assert os.path.isfile(arms_exp_html)
     ids = get_ids(arms_exp_html)
-    arms_extra_csv = os.path.join('', 'data', 'data' + str(year), 'arms_extra.csv')
+    arms_extra_csv = os.path.join('..', 'data', 'data' + str(year), 'arms_extra.csv')
     assert os.path.isfile(arms_extra_csv)
     sd = make_bbrefid_stats_dict(arms_extra_csv, ids)
     # make sure the two pages match up
@@ -881,7 +881,7 @@ def populate_master(rookie_set, year, expanded=True):
     # check cols right length
     #   if not insert mlbamID
     if len(cols) == 24 and expanded is True:
-        utils.db_tools.add_mlbamid_master()
+        db_tools.add_mlbamid_master()
         logger.info("trying to add mlbamID to master")
     else:
         assert len(cols) == 25
@@ -1048,10 +1048,10 @@ def reset_master():
 
 def make_paths(position, year=current_season):
     """Return fielding paths for csv and shtml files."""
-    cwd = os.getcwd()
-    csv_path = os.path.join(cwd, "data", "data" + year,
+    # cwd = os.getcwd()
+    csv_path = os.path.join('..', "data", "data" + year,
                             "fielding_" + position + ".csv")
-    shtml_path = os.path.join(cwd, "data", "data" + year,
+    shtml_path = os.path.join('..', "data", "data" + year,
                               "fielding_" + position + ".shtml")
     return csv_path, shtml_path
 

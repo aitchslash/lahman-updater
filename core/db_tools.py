@@ -3,7 +3,7 @@
 import pymysql
 
 
-def get_db_login(path='data/db_details.txt'):
+def get_db_login(path='../data/db_details.txt'):
     """Get login details for database from file."""
     with open(path, 'r') as f:
         lines = [line.strip() for line in f]
