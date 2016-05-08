@@ -605,6 +605,7 @@ def main():
         insert_year(year=str(options['year']), expanded=expanded,
                     fielding=options['fielding'])
     # else year earlier and data in both files and database - update with expanded.
+    # updates are by def expanded and contain no fielding data => exp=T, field=F
     elif options['expand'] is True or options['ignore'] is True:
         logger.debug("Run update here")
         insert_year(year=options['year'], expanded=True, fielding=False, action='update')
