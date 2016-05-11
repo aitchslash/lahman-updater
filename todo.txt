@@ -18,6 +18,8 @@ cleanup html/csv after use?
 
 @timeit??
 
+make py 2/3 compatible
+
 make inserts for teams, playoffs, all-star etc.
 
 move testers and resets to utils
