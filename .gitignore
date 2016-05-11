@@ -3,3 +3,4 @@
 /data/data201*
 /old_code
 *.pyc
+/data/db_tester.txt
