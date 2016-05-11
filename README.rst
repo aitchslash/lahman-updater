@@ -14,6 +14,7 @@ Working but still in progress.
 To get up and running:
 ----------------------
 
+-  written for python 2.7.11
 -  requires spynner, beautifulsoup4 and pymysql
 -  easy\_install spynner
 -  pip install beautifulsoup4
