@@ -48,6 +48,7 @@ def fix_chicago_team_data():
     checks = [x[0] == x[-1] for x in results]
     # either all checks should be fine or should be broken
     assert checks[0] == checks[1] == checks[2] == checks[3]
+    match_ups = []
     if checks[0] is False:
         # print "let us fix stuff."
         # the problems are the last 8 columns in teams
@@ -62,7 +63,6 @@ def fix_chicago_team_data():
         cursor.execute(prob_statement)
         bad_data = cursor.fetchall()
         # hmm
-        match_ups = []
         start_end = [[0, 1], [1, 0], [2, 3], [3, 2]]
         for pair in start_end:
             # print pair[0]
