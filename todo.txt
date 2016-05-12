@@ -5,6 +5,8 @@ REORGANIZE
 
 *** Reset_master is commented out for testing (inserting rookies takes forever) ***
 
+remove latest_year and find_latest_year
+
 -x flag worked when it shouldn't have. - need a check "RUN insert here"
 :	may need a check that year is prior to current season and/or data doesn't exist
 
