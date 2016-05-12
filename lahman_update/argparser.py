@@ -13,7 +13,7 @@ def set_default_season():
     year, month = cy.split("-")
     if int(month) <= 3:
         year = str(int(year) - 1)
-    return year
+    return str(year)
 
 
 def process_args(args):
