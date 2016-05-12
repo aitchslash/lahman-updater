@@ -289,7 +289,7 @@ def check_chadwick():
         else:
             module_log.warning("ALERT: Chadwick is very big.")
     else:
-        module_log.warning("File missing from path.")
+        module_log.warning("Chadwick file missing from path.")
         fresh = False
         return fresh
 
