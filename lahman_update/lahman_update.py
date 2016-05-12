@@ -40,7 +40,7 @@ import logging
 from bs4 import BeautifulSoup
 import pymysql
 from argparser import process_args, set_default_season
-from scraper import check_files, get_all_data, check_chadwick
+from scraper import check_files, get_all_data, check_chadwick, get_biographical
 import db_tools
 
 # just here for testing. will be moved to main once argparser config'ed
@@ -510,7 +510,7 @@ def main():
 
     # flip option to get chadwick if data is fresh and ignore is False
     if options['chadwick'] and options['ignore'] is False:
-        fresh = check_chadwick
+        fresh = check_chadwick()
         if fresh:
             logger.info("Chadwick data fresh")
             options['chadwick'] = False
@@ -522,12 +522,18 @@ def main():
 
     if options['setup']:
         print "This may take a while. Have a coffee."
+        print ("ALERT: safe to ignore uncaught browser errors.")
         logger.debug("Run setup() here.")
         logger.info('reset_db')
         reset_db()
 
         # make sure the Chicago 'teams' errata is fixed
         db_tools.fix_chicago_team_data()
+
+        # get chadwick data if necessary
+        fresh = check_chadwick()
+        if not fresh:
+            get_biographical()
 
         for year in range(2015, int(current_season) + 1):
             logger.debug('get_all_data for ' + str(year))
@@ -828,11 +834,12 @@ def find_latest_year():
 
 def reset_db():
     """Reset database to 2014."""
-    latest_year = find_latest_year()
+    latest_year = current_season
     for year in range(2015, int(latest_year) + 1):
         for table in ['batting', 'pitching', 'fielding']:
             reset_table(table=table, year=year)
-    # reset_master()  # FOR TESTING this is commented out.
+    reset_master()  # FOR TESTING this is commented out.
+    print 'called reset_master'
 
     # might want to make this a global, it's constant and in use w/ update.
     exp_p_columns = ['ROE', 'BAbip', 'OPS', 'SLG', 'OBP', 'WHIP',
@@ -840,18 +847,20 @@ def reset_db():
 
     if 'FIP' in get_columns('pitching'):
         logger.info("Dropping expanded pitching stats.")
-        logger.info("Dropping mlbID from master")
         statement = "ALTER TABLE pitching "
         for col in exp_p_columns:
             statement += "DROP COLUMN {}, ".format(col)
         statement = statement[:-2]
-        statement2 = "ALTER TABLE master DROP COLUMN mlbamID"
+        if 'mlbamID' in get_columns('master'):
+            logger.info("Dropping mlbID from master")
+            statement2 = "ALTER TABLE master DROP COLUMN mlbamID"
         mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         cursor.execute(statement)
         mydb.commit()
-        cursor.execute(statement2)
-        mydb.commit()
+        if statement2:
+            cursor.execute(statement2)
+            mydb.commit()
         cursor.close()
 
     logger.info("database reset to 2014.")
@@ -1034,13 +1043,14 @@ def update_master(rookie_list):
 
 def reset_master():
     """Delete new entries."""
-    latest_year = find_latest_year()
+    latest_year = int(current_season)
     for year in range(2015, latest_year + 1):
         mydb = pymysql.connect(host, username, password, lahmandb)
         cursor = mydb.cursor()
         statement = """DELETE FROM master
                        where finalGame BETWEEN '{}-12-31 00:00:00' and
                        '{}-12-31 23:59:59'""".format(year, year)
+        print statement
         cursor.execute(statement)
         mydb.commit()
         cursor.close()
@@ -1072,5 +1082,5 @@ def unpack_stints(key, stats_dict):
 
 
 if __name__ == '__main__':
-    main()
-    # pass
+    # main()
+    pass
