@@ -361,8 +361,8 @@ def insert_year(year=current_season, expanded=True, fielding=False, action='inse
 
     if action == 'insert':
         rookie_set = set(find_rookies(id_set))
-        populate_master(rookie_set, year, expanded=expanded)
         print "Gathering rookie data may take a while..."
+        populate_master(rookie_set, year, expanded=expanded)
         add_table_data = ins_table_data
     elif action == 'update':
         add_table_data = update_table_data
@@ -957,6 +957,7 @@ def rookie_deets(rookie_id):
     update_string = "UPDATE master SET "
     # rookie_id = 'walkela01'
     url_start = "http://www.baseball-reference.com/players/"
+    logger.info("Scraping bbref for: %s" % rookie_id)
     url = url_start + rookie_id[0] + "/" + rookie_id + ".shtml"
     page = urllib2.urlopen(url).read()
     soup = BeautifulSoup(page, 'html.parser')
@@ -1054,7 +1055,7 @@ def reset_master():
         statement = """DELETE FROM master
                        where finalGame BETWEEN '{}-12-31 00:00:00' and
                        '{}-12-31 23:59:59'""".format(year, year)
-        print statement
+        # print statement
         cursor.execute(statement)
         mydb.commit()
         cursor.close()
@@ -1086,5 +1087,5 @@ def unpack_stints(key, stats_dict):
 
 
 if __name__ == '__main__':
-    # main()
-    pass
+    main()
+    # pass
