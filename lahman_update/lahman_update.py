@@ -683,7 +683,11 @@ def ins_fielding(year):
         for key in pos_dict.keys():
             statements = insert_fielder(key, year, pos_dict, team_dict, cols, pos)
             for statement in statements:
-                cursor.execute(statement)
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    print statement
+                    raise e
         mydb.commit()
         logger.info("data committed")
         cursor.close()
