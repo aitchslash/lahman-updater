@@ -11,14 +11,12 @@ Can also be used to add expanded stats to prior years.
 
 Working but still in progress.
 
-To get up and running:
+Notes:
 ----------------------
 
 -  written for python 2.7.11
 -  requires spynner, beautifulsoup4 and pymysql
--  easy\_install spynner
--  pip install beautifulsoup4
--  pip install PyMySQL
+-  Spynner is tough to install.  easy\_install spynner - spynner has no pip
 -  Edit data/db\_details.txt with your database access information.
 -  Run with –setup and set –strict if you prefer the 2014 Lahman schema.
 
