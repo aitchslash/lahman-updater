@@ -11,15 +11,22 @@ Can also be used to add expanded stats to prior years.
 
 Working but still in progress.
 
-To get up and running:
+Notes:
 ----------------------
 
+-  written for python 2.7.11
 -  requires spynner, beautifulsoup4 and pymysql
--  easy\_install spynner
--  pip install beautifulsoup4
--  pip install PyMySQL
+-  Spynner is tough to install.  easy\_install spynner - spynner has no pip
 -  Edit data/db\_details.txt with your database access information.
 -  Run with –setup and set –strict if you prefer the 2014 Lahman schema.
+
+ISSUES:
+~~~~~~
+
+-  spynner dependencies (PyQt and SIP) are problematic to install in virtualenvs
+-  Recommended to not use virtual env or to manually install packages.
+-  Potential (untested) vitualenv fix here: http://stackoverflow.com/questions/22640640/how-to-install-pyqt4-on-windows-using-pip
+-  Spynner throws errors that I've been unable to catch. This does not seem to affect performance.
 
 Flags:
 ~~~~~~
