@@ -4,3 +4,6 @@
 /old_code
 *.pyc
 /data/db_tester.txt
+build/
+dist/
+*egg*
