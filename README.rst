@@ -22,12 +22,13 @@ To get up and running:
 -  Edit data/db\_details.txt with your database access information.
 -  Run with –setup and set –strict if you prefer the 2014 Lahman schema.
 
-ISSUE:
+ISSUES:
 ~~~~~~
 
 -  spynner dependencies (PyQt and SIP) are problematic to install in virtualenvs
 -  Recommended to not use virtual env or to manually install packages.
 -  Potential (untested) vitualenv fix here: http://stackoverflow.com/questions/22640640/how-to-install-pyqt4-on-windows-using-pip
+-  Spynner throws errors that I've been unable to catch. This does not seem to affect performance.
 
 Flags:
 ~~~~~~

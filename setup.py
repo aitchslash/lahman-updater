@@ -10,7 +10,7 @@ with open('LICENSE') as f:
 
 setup(
     name='lahman_updater',
-    version='0.8.9',
+    version='1.0.0',
     description='Update lahman database',
     long_description=readme,
     author='Benjamin Field',
